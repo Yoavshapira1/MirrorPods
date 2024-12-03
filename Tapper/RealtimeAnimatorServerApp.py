@@ -36,7 +36,7 @@ class Touch_Debugger(MpApp):
         raw_data = self.mp_widg.get_data(include_touch_id=True)
         animation_data = pack("!ffffffff", *raw_data)
         sounds_data = self.mp_widg.get_data(positional=False)
-        self.animation_sock.sendto(animation_data, (DISPLAY3_IP, 2222))
+        self.animation_sock.sendto(animation_data, (DISPLAY3_IP, 2345))
         self.max_sock.broadcast(sounds_data)
         if self.print_data:
             print(raw_data)
