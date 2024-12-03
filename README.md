@@ -62,20 +62,10 @@ and then `Config.write()`.
 
 `Config.set('graphics', 'maxfps', '0')`.
 
-# USB devices notes:
-The program ATM uses Kivy package to handle input from usb touch devices, so the _libusb_ library is not in use at all.
-**If you do want to use it**, in order to access the usb device **manually**, the driver of the device must be of 'libusb'.
-If you encounter with this error:
-*"usb.core.USBError: [Errno 5] Input/Output Error"*
-It means the device cannot be accessed for the mentioned reason. 
-In this case, use zadig-2.7.exe (under *Touch Utilities*) to change the driver. Link for instructions:
-https://github.com/pbatard/libwdi/wiki/Zadig
-
 # Zytronic Touch Firmware
 Our device called **_ZXY500 256_**; 
-1. Driver can be fond here: https://www.zytronic.co.uk/support/downloads/
-2. Data Sheet: https://www.zytronic.co.uk/wp-content/uploads/2018/05/Data-Sheets-ZXY500-.pdf
-3. User Manual: https://www.zytronic.co.uk/wp-content/uploads/2018/07/Zytronic_150200300500_UserManual-v3.pdf
+1. Data Sheet: https://www.zytronic.co.uk/wp-content/uploads/2018/05/Data-Sheets-ZXY500-.pdf
+2. User Manual: https://www.zytronic.co.uk/wp-content/uploads/2018/07/Zytronic_150200300500_UserManual-v3.pdf
 
 # Links That You May Find Useful:
 ***Packing a Kivy application:***
@@ -83,12 +73,3 @@ https://kivy.org/doc/stable/guide/packaging-windows.html#packaging-a-simple-app
 
 ***LSL in GitHub:***
 https://github.com/sccn/labstreaminglayer
-
-***libusb docs:***
-https://libusb.sourceforge.io/api-1.0/
-
-***PyUSB docs on GitHub:***
-https://github.com/walac/pyusb/blob/master/docs/tutorial.rst
-
-***osc4py3 Documentation:***
-https://osc4py3.readthedocs.io/en/latest/
