@@ -23,7 +23,7 @@ class Touch_Debugger(MpApp):
     Making use of a TCP socket to the client, and also a UDP socket to MaxMSP
     """
 
-    def __init__(self, mode="wm_touch", n_channels=2, print=False, **kwargs):
+    def __init__(self, mode="wm_touch", n_channels=2, print=True, **kwargs):
         super().__init__(**kwargs)
         self.mode = mode
         self.animation_sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)

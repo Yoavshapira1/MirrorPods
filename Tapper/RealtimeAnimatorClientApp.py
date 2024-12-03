@@ -6,7 +6,7 @@ import threading
 def get_conn():
     import socket
     UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-    UDPServerSocket.bind(('', 2222))
+    UDPServerSocket.bind(('', 2345))
     return UDPServerSocket
 
 def animation(conn):
