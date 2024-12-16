@@ -7,7 +7,7 @@ import numpy as np
 from matplotlib.patches import Rectangle
 from Development.util import motion_small, motion_big, circles_small, circles_big, circles_last,\
                              tapping_small, tapping_big, tapping_last, FREE_MOTION, CIRCLES, TAPPING, plot_interval_hist
-from Tapper.utils import markers_dict, target_srate, ch_x, ch_y, tap_ID, ALL_DYADIC_DIR, ALL_SUBJECTS_DIR
+from Tapper.App_Utilities.utils import markers_dict, target_srate, ch_x, ALL_DYADIC_DIR, ALL_SUBJECTS_DIR
 
 stuck_threshold = 5.
 

@@ -1,12 +1,10 @@
 import re
 import os
-import time
 from re import sub
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.properties import StringProperty
 from kivy.uix.label import Label
-from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
 from kivy.uix.spinner import Spinner
@@ -18,7 +16,7 @@ from kivymd.app import MDApp
 from kivymd.uix.boxlayout import BoxLayout
 from kivymd.uix.button import MDIconButton
 from kivy.uix.filechooser import FileChooserIconView
-from Tapper.utils import ALL_DYADIC_DIR
+from Tapper.App_Utilities.utils import ALL_DYADIC_DIR
 
 
 def init_ax(ax, title):

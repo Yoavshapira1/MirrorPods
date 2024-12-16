@@ -1,7 +1,7 @@
 import pyxdf as xdf
 import re
 from util import ProgressBar as Bar
-from Tapper.utils import *
+from Tapper.App_Utilities.utils import *
 from DyadicPostProcess import *
 
 

@@ -1,6 +1,6 @@
 from socket import gethostname
 from pylsl import StreamInfo, StreamOutlet, local_clock
-from Tapper.utils import ALMOTUNUI_HOSTNAME, SCREEN_1_NAME, SCREEN_2_NAME, LSL_SRATE, generate_head_columns, \
+from Tapper.App_Utilities.utils import ALMOTUNUI_HOSTNAME, SCREEN_1_NAME, SCREEN_2_NAME, LSL_SRATE, generate_head_columns, \
     HANDS_ALLOWED
 
 

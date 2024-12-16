@@ -3,7 +3,7 @@ from shutil import rmtree
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from numpy import random
-from Tapper.utils import DEFAULT_TIMERS, TAPPING, FREE_MOTION, CIRCLES, DYADIC_FL, DYADIC_LF, DYADIC, \
+from Tapper.App_Utilities.utils import DEFAULT_TIMERS, TAPPING, FREE_MOTION, CIRCLES, DYADIC_FL, DYADIC_LF, DYADIC, \
     dyadic_subject1_leader_state, dyadic_subject2_leader_state, dyadic_no_leader_state, subject1_register_state, \
     dyadic_random_state1, dyadic_random_state2, dyadic_random_state3, DYADIC_FILE, SINGLE_DYADIC_DIR, \
     subject1_tasks_state, subject1_second_measurments, subject2_register_state, subject2_tasks_state, \

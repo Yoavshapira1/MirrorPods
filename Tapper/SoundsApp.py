@@ -2,10 +2,9 @@ import sys
 from os import environ
 from Mirror_Pods_Widgets.SoundsPods import SoundsPods
 environ['SDL_VIDEODRIVER'] = 'windows'
-from kivy.app import App
 from kivy.clock import Clock
 from MirrorPodsAppAbs import MirrorPodsAppAbs as MpApp
-from BroadCasters import MaxMspBroadcaster
+from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
 from kivy.config import Config
 Config.set('postproc', 'maxfps', '0')
 Config.set('graphics', 'maxfps', '0')

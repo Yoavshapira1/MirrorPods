@@ -1,4 +1,4 @@
-from Tapper.utils import *
+from Tapper.App_Utilities.utils import *
 from re import compile, sub
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup

@@ -1,8 +1,8 @@
 from os.path import isdir
 from kivy.uix.screenmanager import ScreenManager
-from Factory import *
+from Tapper.App_Utilities.Factory import *
 from MirrorPodsAppAbs import MirrorPodsAppAbs as MpApp
-from Tapper.Context import Context
+from Tapper.App_Utilities.Context import Context
 
 
 class SoloApp(MpApp):

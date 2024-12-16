@@ -5,9 +5,9 @@ environ['SDL_VIDEODRIVER'] = 'windows'
 from kivy.app import App
 from kivy.clock import Clock
 from MirrorPodsAppAbs import MirrorPodsAppAbs as MpApp
-from BroadCasters import MaxMspBroadcaster
+from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
 from Tapper.Mirror_Pods_Widgets.MirrorPodsWidgetDyadic import MirrorPodsWidgetDyadic as MP
-from utils import DISPLAY3_IP, TIME_SERIES_DT, FULL_SCREEN_MODE
+from Tapper.App_Utilities.utils import DISPLAY3_IP, TIME_SERIES_DT, FULL_SCREEN_MODE
 from kivy.config import Config
 from struct import pack
 Config.set('postproc', 'maxfps', '0')

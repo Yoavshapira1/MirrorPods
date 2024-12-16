@@ -1,13 +1,13 @@
 from kivy.uix.floatlayout import FloatLayout
 from pylsl import local_clock, StreamInfo, StreamOutlet
 
-from GUI import *
+from Tapper.App_Utilities.GUI import *
 from SoloTasks import *
 from kivy.uix.screenmanager import Screen
 from kivy.core.window import Window
 from kivy.uix.gridlayout import GridLayout
 
-from Tapper.LslOutlet import LSLOutlet
+from Tapper.App_Utilities.LslOutlet import LSLOutlet
 from Tapper.Mirror_Pods_Widgets.MirrorPodsWidgetDyadic import MirrorPodsWidgetDyadic
 from kivy.app import App
 
