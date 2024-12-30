@@ -1,12 +1,28 @@
 {
-    "2PatchesExp": [
+    "MP ASD": [
         {
-            "name": "Patch1",
-            "timer": "60"
+            "name": "Silent Pre",
+            "timer": "75"
         },
         {
-            "name": "Patch2",
-            "timer": "10"
+            "name": "Silent Pre",
+            "timer": "75"
+        },
+        {
+            "name": "Play a Song",
+            "timer": "120"
+        },
+        {
+            "name": "Animal",
+            "timer": "120"
+        },
+        {
+            "name": "Silent Post",
+            "timer": "75"
+        },
+        {
+            "name": "Silent Post",
+            "timer": "75"
         }
     ]
 }
