@@ -17,8 +17,11 @@ protocols_conf = os.path.join(script_dir, "protocols_conf.json")
 # Patch Dictionary
 # change here to the actual name wanted to be saved, and the actual port is being used
 patches = {
-    "Patch1": {"count": 0, "port": 5001, "name": "Patch1", "instructions": "Do this for Patch1."},
-    "Patch2": {"count": 0, "port": 5002, "name": "Patch2", "instructions": "Do this for Patch2."},
+    "Tapping": {"count": 0, "name": "Tapping", "instructions": "Tapping. Press Enter to start"},
+    "Silent Pre": {"count": 0, "name": "Silent Pre", "instructions": "Silent Pre. Press Enter to start"},
+    "Play a Song": {"count": 0, "name": "Play a Song", "instructions": "Play a Song. Press Enter to start"},
+    "Animal": {"count": 0, "name": "Animal", "instructions": "Animal. Press Enter to start"},
+    "Silent Post": {"count": 0, "name": "Silent Post", "instructions": "Silent Post. Press Enter to start"}
 }
 possible_blocks = list(patches.keys())
 
@@ -92,7 +95,7 @@ class ProtocolWidget(BoxLayout):
                 height=40,  # Adjust height for smaller buttons
                 color=(1, 1, 1, 1)  # White text color
             )
-            button.bind(on_press=lambda x: self.start_experiment(name))
+            button.bind(on_press=lambda x, protocol_name=name: self.start_experiment(protocol_name))
             protocols_layout.add_widget(button)
 
         layout.add_widget(protocols_layout)
@@ -130,9 +133,7 @@ class ProtocolWidget(BoxLayout):
         # Buttons
         buttons_layout = BoxLayout(size_hint_y=None, height=50, spacing=10)
         save_button = Button(text="Save Protocol", on_press=lambda x: self.save_protocol())
-        start_button = Button(text="Start Experiment", on_press=lambda x: self.start_experiment("Unknown Protocol"))
         buttons_layout.add_widget(save_button)
-        buttons_layout.add_widget(start_button)
         layout.add_widget(buttons_layout)
 
         self.add_widget(layout)
@@ -172,8 +173,6 @@ class ProtocolWidget(BoxLayout):
 
             app = App.get_running_app()
             app.current_protocol = self.current_blocks  # Store the current protocol blocks
-            print(f"Saved Protocol: {protocol_name}")
-            print(f"Protocol Details: {app.current_protocol}")
 
             save_popup.dismiss()
             self.start_experiment(protocol_name)
