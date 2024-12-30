@@ -1,6 +1,6 @@
 from time import time
 from kivy.clock import Clock
-from utils import *
+from Tapper.App_Utilities.utils import *
 import numpy as np
 
 

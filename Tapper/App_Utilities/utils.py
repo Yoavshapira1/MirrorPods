@@ -9,11 +9,11 @@ Config.set('postproc', 'retain_time', '20')
 Config.write()
 
 # Turn this on if you are currently operating on a single computer
-CLIENT_DEV_MODE = False
+CLIENT_DEV_MODE = True
 # Turn this on if you are currently without a touch pad, and want enable mouse touches
-MOUSE_DEV_MODE = False
+MOUSE_DEV_MODE = True
 # Full window switch
-FULL_SCREEN_MODE = True
+FULL_SCREEN_MODE = False
 # If False, save to current directory
 SAVE_TO_DATA_AYELET = False
 # When True, this computer acts like a client
@@ -58,6 +58,8 @@ LSL_SRATE = 500
 ROOT = os.path.join(os.path.expanduser("~"), "Desktop")
 if SAVE_TO_DATA_AYELET:
     ROOT = r"R:\Experiments\resoFreq_vis_BEH\MP_mot_BEH"
+if CLIENT_DEV_MODE:     # change here manually as needed
+    ROOT = os.path.join(os.path.expanduser("~"), "OneDrive", "Desktop")
 
 # directories
 MAIN_DATA_DIR = ROOT + r"\Data"

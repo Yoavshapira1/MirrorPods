@@ -1,8 +1,8 @@
 from kivy.uix.screenmanager import ScreenManager
-from Factory import Factory
+from Tapper.App_Utilities.Factory import Factory
 from MirrorPodsAppAbs import MirrorPodsAppAbs as MpApp
-from utils import FULL_SCREEN_MODE, CLIENT, CLIENT_DEV_MODE, DEV_MODE_HOST, TCP_SERVER_HOST, TCP_PORT
-from Tapper.Context import Context
+from Tapper.App_Utilities.utils import FULL_SCREEN_MODE, CLIENT, CLIENT_DEV_MODE, DEV_MODE_HOST, TCP_SERVER_HOST, TCP_PORT
+from Tapper.App_Utilities.Context import Context
 import socket
 
 

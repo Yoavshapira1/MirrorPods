@@ -1,8 +1,5 @@
-from kivy.clock import Clock
-from Tapper.TouchChannel import TouchChannel, TIME_SERIES_DT
+from Tapper.App_Utilities.TouchChannel import TouchChannel
 from Tapper.Mirror_Pods_Widgets.MirrorPodsWidgetAbs import MirrorPodsWidget
-import numpy as np
-import itertools as it
 
 
 class SoundsPods(MirrorPodsWidget):

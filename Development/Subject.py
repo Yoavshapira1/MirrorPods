@@ -1,14 +1,13 @@
 from abc import abstractmethod
 import pandas as pd
 import scipy.stats
-from Tapper.utils import target_srate
+from Tapper.App_Utilities.utils import target_srate
 from Development.util import EXCEL_COLS_PER_TASK as head_lines
 from Development.util import *
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from scipy import signal
 from os import path, mkdir
-from shutil import rmtree
 
 
 def session_factory(path):

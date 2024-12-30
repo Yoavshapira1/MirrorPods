@@ -1,6 +1,6 @@
 from kivy.uix.widget import Widget
-from Tapper.utils import MOUSE_DEV_MODE
-from Tapper.TouchChannel import TouchChannel
+from Tapper.App_Utilities.utils import MOUSE_DEV_MODE
+from Tapper.App_Utilities.TouchChannel import TouchChannel
 
 class MirrorPodsWidget(Widget):
     """

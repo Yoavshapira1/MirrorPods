@@ -1,0 +1,12 @@
+{
+    "2PatchesExp": [
+        {
+            "name": "Patch1",
+            "timer": "60"
+        },
+        {
+            "name": "Patch2",
+            "timer": "10"
+        }
+    ]
+}

@@ -1,9 +1,9 @@
 from kivy.clock import Clock, ClockEvent
 from time import time
 from kivy.uix.widget import Widget
-from BroadCasters import WriterBroadcastForSolo
+from Tapper.App_Utilities.BroadCasters import WriterBroadcastForSolo
 from abc import abstractmethod
-from utils import *
+from Tapper.App_Utilities.utils import *
 from Tapper.Mirror_Pods_Widgets.MirrorPodsWidgetSolo import MirrorPodsWidgetSolo as solo_widg
 
 

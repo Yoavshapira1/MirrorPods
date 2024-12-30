@@ -3,9 +3,8 @@ import os
 import numpy
 from matplotlib import pyplot as plt
 import numpy as np
-import pandas as pd
 
-from Tapper.utils import SINGLE_DYADIC_DIR, target_srate, ch_x, ch_y, tap_ID, time_stamp, right_x, left_x, right_y, \
+from Tapper.App_Utilities.utils import SINGLE_DYADIC_DIR, target_srate, ch_x, ch_y, right_x, left_x, right_y, \
     left_y
 
 sess = 1
