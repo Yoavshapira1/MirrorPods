@@ -66,7 +66,8 @@ class ProtocolWidget(BoxLayout):
         self.clear_widgets()
 
         # Main Layout
-        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        popup_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        popup = Popup(title="Choose a Protocol", size_hint=(0.7, 0.5), auto_dismiss=False)
 
         # Title
         title = Label(
@@ -76,7 +77,7 @@ class ProtocolWidget(BoxLayout):
             height=50,
             color=(1, 1, 1, 1)  # White text color
         )
-        layout.add_widget(title)
+        popup_layout.add_widget(title)
 
         # Scrollable layout for buttons
         protocols_layout = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
@@ -95,13 +96,16 @@ class ProtocolWidget(BoxLayout):
                 height=40,  # Adjust height for smaller buttons
                 color=(1, 1, 1, 1)  # White text color
             )
-            button.bind(on_press=lambda x, protocol_name=name: self.start_experiment(protocol_name))
+            button.bind(on_press=lambda x, protocol_name=name: [popup.dismiss(), self.start_experiment(protocol_name)])
             protocols_layout.add_widget(button)
 
-        layout.add_widget(protocols_layout)
-        self.add_widget(layout)
+        popup_layout.add_widget(protocols_layout)
+        popup.content = popup_layout
+        popup.open()
 
     def start_experiment(self, name):
+        self.clear_widgets()
+
         app = App.get_running_app()
         app.protocol_blocks = [(block['name'], block['timer']) for block in self.protocols[name]]
         app.sm.current = "register_names"
@@ -111,32 +115,59 @@ class ProtocolWidget(BoxLayout):
         self.current_blocks = []
 
         # Layout
-        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        popup_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        popup = Popup(title="Create a New Protocol", size_hint=(0.7, 0.5), auto_dismiss=False)
+
         patches_label = Label(text=f"Possible Patches: {possible_blocks}")
         input_layout = BoxLayout(size_hint_y=None, height=50)
         block_input = TextInput(hint_text="Block Name", multiline=False)
         timer_input = TextInput(hint_text="Timer (sec)", input_filter="int", multiline=False, size_hint_x=0.3)
         add_button = Button(text="Add Block", on_press=lambda x: self.add_block(block_input, timer_input))
-        layout.add_widget(patches_label)
+        popup_layout.add_widget(patches_label)
         input_layout.add_widget(block_input)
         input_layout.add_widget(timer_input)
         input_layout.add_widget(add_button)
-        layout.add_widget(input_layout)
+        popup_layout.add_widget(input_layout)
+
+        # TODO: change here  to Buttons instead of typing the input
+        # ###########################################################
+        # # Scrollable layout for buttons
+        # patches_layout = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
+        # patches_layout.bind(minimum_height=patches_layout.setter('height'))
+        #
+        # # Background color for the protocols layout
+        # with patches_layout.canvas.before:
+        #     Color(0.1, 0.1, 0.1, 1)  # Dark background color
+        #     Rectangle(size=patches_layout.size, pos=patches_layout.pos)
+        #
+        # # Add buttons for each protocol
+        # for name in patches:
+        #     button = Button(
+        #         text=name,
+        #         size_hint_y=None,
+        #         height=40,  # Adjust height for smaller buttons
+        #         color=(1, 1, 1, 1)  # White text color
+        #     )
+        #     button.bind(on_press=lambda x, protocol_name=name: [self.add_block(block_input, timer_input)])
+        #     patches_layout.add_widget(button)
+        #     #############################################
+        # popup_layout.add_widget(patches_layout)
 
         # Blocks List
-        self.blocks_list = ScrollView(size_hint=(1, None), size=(Window.width, Window.height * 0.5))
+        self.blocks_list = ScrollView(size_hint=(1, None))
         self.blocks_list_content = BoxLayout(orientation="vertical", size_hint_y=None)
         self.blocks_list_content.bind(minimum_height=self.blocks_list_content.setter("height"))
         self.blocks_list.add_widget(self.blocks_list_content)
-        layout.add_widget(self.blocks_list)
+        popup_layout.add_widget(self.blocks_list)
 
         # Buttons
         buttons_layout = BoxLayout(size_hint_y=None, height=50, spacing=10)
-        save_button = Button(text="Save Protocol", on_press=lambda x: self.save_protocol())
+        save_button = Button(text="Save Protocol", on_press=lambda x: [popup.dismiss(), self.save_protocol()])
         buttons_layout.add_widget(save_button)
-        layout.add_widget(buttons_layout)
+        popup_layout.add_widget(buttons_layout)
 
-        self.add_widget(layout)
+        popup.content = popup_layout
+        popup.open()
 
     def add_block(self, block_input, timer_input):
         block_name = block_input.text.strip()

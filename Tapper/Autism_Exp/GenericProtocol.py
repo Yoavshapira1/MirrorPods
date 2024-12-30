@@ -62,7 +62,7 @@ class RegisterNamesScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.layout = BoxLayout(orientation="vertical", padding=10, spacing=10)
-        self.label = Label(text="Enter your name:")
+        self.label = Label(text="Enter subject name:")
         self.text_input = TextInput(multiline=False)
         self.submit_button = Button(text="Submit")
         self.submit_button.bind(on_press=self.submit_name)
