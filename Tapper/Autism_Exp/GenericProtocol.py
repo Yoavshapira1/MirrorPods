@@ -5,7 +5,6 @@ from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
 from Tapper.App_Utilities.ChooseProtocolWidget import ProtocolWidget
 from Tapper.Mirror_Pods_Widgets.SoundsPods import SoundsPods
 from Tapper.App_Utilities.ChooseProtocolWidget import patches
-from KivyOnTop import register_topmost, unregister_topmost
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
@@ -58,7 +57,6 @@ class ChooseProtocolScreen(Screen):
         super().__init__(**kwargs)
         self.widget = ProtocolWidget()
         self.add_widget(self.widget)
-
 
 class RegisterNamesScreen(Screen):
     def __init__(self, **kwargs):
