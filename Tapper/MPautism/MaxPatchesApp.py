@@ -2,12 +2,13 @@ import time
 import ctypes
 from pythonosc.udp_client import SimpleUDPClient
 from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
-from Tapper.App_Utilities.ChooseProtocolWidget import ProtocolWidget
+from Tapper.App_Utilities.ChooseProtocolWidget import ProtocolWidget, ChoosePatchWidget
 from Tapper.Mirror_Pods_Widgets.SoundsPods import SoundsPods
 from Tapper.App_Utilities.ChooseProtocolWidget import patches
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
@@ -22,7 +23,7 @@ Config.set('graphics', 'maxfps', '0')
 Config.set('postproc', 'retain_time', '20')
 Config.write()
 
-FULL_WINDOW = True
+FULL_WINDOW = False
 TIME_SERIES_DT = 0.001   # sampling sound rate
 MODE = "wm_touch"        # change to "mouse" if want to debug
 
@@ -41,12 +42,6 @@ OPEN = "OPEN"
 time_to_beep = 5
 delay_to_start = 1.
 
-# UDP Helper Function
-# 4 types of messages to the UDP ports:
-# 1) 'FILENAME' - name of subjects
-# 2) '<Patch name> ON' - start patch
-# 3) '<Patch name> OFF' - stop a patch
-# 4) '<Patch name> BAD' - stop a bad session
 
 def send_udp_message(udp_client, address, message):
         udp_client.send_message(address, message)
@@ -61,7 +56,10 @@ class ChooseProtocolScreen(Screen):
 class RegisterNamesScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.layout = BoxLayout(orientation="vertical", padding=10, spacing=10)
+        parent_layout = FloatLayout()
+        self.layout = BoxLayout(orientation="vertical", size_hint=(None, None), size=(400, 200),
+                                pos_hint={"center_x": 0.5, "center_y": 0.5},
+                                padding=10, spacing=10)
         self.label = Label(text="Enter subject name:")
         self.text_input = TextInput(multiline=False)
         self.submit_button = Button(text="Submit")
@@ -103,8 +101,9 @@ class InstructionScreen(Screen):
         self.patch_info["count"] += 1
 
         self.layout = BoxLayout(orientation="vertical", padding=10, spacing=10)
-        self.label = Label(text=f"Instruction: {self.patch_info['instructions']}")
-        self.layout.add_widget(self.label)
+        self.patch_label = Label(text=f"{self.patch_info['instructions']}", font_size=26)
+        self.layout.add_widget(self.patch_label)
+        self.layout.add_widget(Label(text="Press Enter to start", font_size=14))
         self.add_widget(self.layout)
 
     def on_key_down(self, instance, keycode, text, modifiers, *kargs):
@@ -114,15 +113,15 @@ class InstructionScreen(Screen):
     def handle_enter_press(self):
         app = App.get_running_app()
 
+        # Transition to MyWidget screen
+        self.manager.current = "sounds_widget"
+
         # send message to start the patch
         udp_message = f"{app.names}_{self.patch_info['name']}_{self.patch_info['count']}"
         send_udp_message(main_patch_client, subjName, udp_message)
         send_udp_message(main_patch_client, self.patch_info["name"], OPEN)
         time.sleep(delay_to_start)
         send_udp_message(on_off_client, self.patch_info["name"], ON)
-
-        # Transition to MyWidget screen
-        self.manager.current = "sounds_widget"
 
     def on_leave(self, *args):
         Window.unbind(on_key_down=self.on_key_down)
@@ -220,8 +219,9 @@ class SoundsPodScreen(Screen):
 class EndScreen(Screen):
     def on_enter(self):
         self.layout = BoxLayout(orientation="vertical", padding=10, spacing=10)
-        self.label = Label(text=f"Experiment is ended. Press ESC to exit")
+        self.label = Label(text=f"Experiment protocol is ended.\nYou can play another patch\n\nPress ESC to exit", font_size=30)
         self.layout.add_widget(self.label)
+        self.layout.add_widget(ChoosePatchWidget())
         self.add_widget(self.layout)
 
 class MyApp(App):
