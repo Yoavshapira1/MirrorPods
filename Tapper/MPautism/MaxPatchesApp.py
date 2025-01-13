@@ -1,10 +1,14 @@
 import time
 import ctypes
+import numpy as np
 from pythonosc.udp_client import SimpleUDPClient
+from pythonosc.dispatcher import Dispatcher
+from pythonosc.osc_server import BlockingOSCUDPServer
 from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
 from Tapper.App_Utilities.ChooseProtocolWidget import ProtocolWidget, ChoosePatchWidget
 from Tapper.Mirror_Pods_Widgets.SoundsPods import SoundsPods
 from Tapper.App_Utilities.ChooseProtocolWidget import patches
+from utilities import *
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
@@ -27,13 +31,13 @@ FULL_WINDOW = False
 TIME_SERIES_DT = 0.001   # sampling sound rate
 MODE = "wm_touch"        # change to "mouse" if want to debug
 
-# UDP info
-main_patch_port = 5550
-ON_OFF_port = 5551
+# UDP info for main computer
 host = "127.0.0.1"
 main_patch_client = SimpleUDPClient(host, main_patch_port)
 on_off_client = SimpleUDPClient(host, ON_OFF_port)
+max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)
 
+# messages to MAX variables
 subjName = "subjectName"
 ON = "ON"
 OFF = "OFF"
@@ -43,17 +47,33 @@ time_to_beep = 5
 delay_to_start = 1.
 
 
+# helper function to send UDP messages, given udp client and a message
 def send_udp_message(udp_client, address, message):
         udp_client.send_message(address, message)
 
+# helper function for the synchrony measurements
+def sync_measure(data1, data2, method="distance"):
+    data1_ch_1, data1_ch_2 = data1[0:2], data1[3:5]
+    data2_ch_1, data2_ch_2 = data2[0:2], data2[3:5]
+
+    if method == "distance":
+        ch1_sync = np.linalg.norm(data1_ch_1 - data2_ch_1)
+        ch2_sync = np.linalg.norm(data1_ch_2 - data2_ch_2)
+        return ch1_sync, ch2_sync
+
 # Screens
 class ChooseProtocolScreen(Screen):
+    # this screen appears on the application is starts. this is a container for the ChoosingProtocolWidget
+    # that asks the user for the desired protocol to run: load onr or create a new one
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.widget = ProtocolWidget()
         self.add_widget(self.widget)
 
 class RegisterNamesScreen(Screen):
+    # this screen appears after the user chose a protocol, and it container for the subject names registration
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         parent_layout = FloatLayout()
@@ -79,6 +99,8 @@ class RegisterNamesScreen(Screen):
             self.label.text = "Enter a name to proceed."
 
 class InstructionScreen(Screen):
+    # this screen appears before every task and it waits to the user to start the task
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.current_patch = None
@@ -88,9 +110,12 @@ class InstructionScreen(Screen):
         self.is_repeated = False
 
     def on_enter(self):
+        # listen to keyboard; when "Enter" pressed - start the task
         Window.bind(on_key_down=self.on_key_down)  # Bind keyboard events
 
         app = App.get_running_app()
+
+        # if the current block is a repeated block, it means that the last block is a spare one - pop it
         if not self.is_repeated:
             self.current_patch, self.timer = app.protocol_blocks.pop(0)
         app.current_patch = self.current_patch
@@ -107,10 +132,14 @@ class InstructionScreen(Screen):
         self.add_widget(self.layout)
 
     def on_key_down(self, instance, keycode, text, modifiers, *kargs):
+        # listen to keyboard; when "Enter" pressed - start the task
+
         if keycode == 13:  # 13 is the "Enter" key
             self.handle_enter_press()
 
     def handle_enter_press(self):
+        # when "Enter" is pressed
+
         app = App.get_running_app()
 
         # Transition to MyWidget screen
@@ -124,20 +153,31 @@ class InstructionScreen(Screen):
         send_udp_message(on_off_client, self.patch_info["name"], ON)
 
     def on_leave(self, *args):
+        # when finished, stop listening to keyboard and clear the screen (prevent the labels to show on next block)
+
         Window.unbind(on_key_down=self.on_key_down)
         self.clear_widgets()
 
 class SoundsPodScreen(Screen):
+    # this screen appears during the tasks, and it contains the SoundsWidget
+
     def __init__(self, mode=MODE, n_channels=2, positional=False, **kwargs):
         super().__init__(**kwargs)
         self.positional = positional
         self.mode = mode
-        self.broadcaster = MaxMspBroadcaster(channels=n_channels, positional=self.positional)
+        self.pos_data2 = None
+        self.broadcaster = MaxMspBroadcaster(channels=n_channels, positional=self.positional, port=data_to_max_port_client_almotunui)
         self.mp_widg = SoundsPods(n_channels=n_channels, mode=self.mode)
         self.timer, self.sampling_event = None, None
 
     def on_enter(self):
-        Window.bind(on_key_down=self.on_key_down)  # Bind keyboard events
+        # starts the sampling event and the timer
+
+        # listen to keyboard; "Space" for finish and "Delete" for repeat the task
+        Window.bind(on_key_down=self.on_key_down)
+
+        # define the listener to data from other cpu
+        self.define_listener_to_other_cpu()
 
         app = App.get_running_app()
         timer = app.current_timer
@@ -150,12 +190,47 @@ class SoundsPodScreen(Screen):
         self.add_widget(self.mp_widg)
         self.sampling_event = Clock.schedule_interval(self.broadcast, TIME_SERIES_DT)
 
+    def define_listener_to_other_cpu(self):
+        # TODO: make this work: currently, the 'get_data_from_client' method is not been called at all
+        # TODO: other code is in "SoundsApp.py" line ~55
+        def get_data_from_client(addr, *args):
+            # the synd_data_listen uses this function to store the data from the other computer
+            print("get_data_from_client")
+            print(*args)
+            self.pos_data2 = list(args)
+            print(self.pos_data2)
+
+        # defining the udp port that listen to data from other computer
+        self.sync_data_dispatcher = Dispatcher()
+        self.sync_data_dispatcher.set_default_handler(get_data_from_client)
+        self.sync_data_listen = BlockingOSCUDPServer(("127.0.0.1", data_to_sync_port), self.sync_data_dispatcher)
+        self.sync_data_listen.timeout = TIME_SERIES_DT / 10
+
+
+
     def broadcast(self, dt):
+
+        # send the data from SoundsWidget to MAX
         if self.mp_widg.active:
+            print("broadcasting data to MAX")
             data = self.mp_widg.get_data()
             self.broadcaster.broadcast(data)
 
+            print("getting from data2")
+            pos_data = self.mp_widg.get_data(positional=True)
+            print("self positional data: ", pos_data)
+            # also send the synchrony measure, if needed
+            self.sync_data_listen.handle_request()
+            print("data2 positional data: ", self.pos_data2)
+            if self.pos_data2:
+                sync_data = sync_measure(pos_data, self.pos_data2)
+                print(sync_data)
+                self.pos_data2 = None
+
+
     def on_key_down(self, instance, keycode, text, modifiers, *kargs):
+        # listen to keyboard; "Space" for finish and "Delete" for repeat the task
+
         if keycode == 32:  # 32 is the "Space" key
             self.handle_space_press()
 
@@ -163,10 +238,12 @@ class SoundsPodScreen(Screen):
             self.handle_delete_press()
 
     def handle_space_press(self):
+        # when "Space" key is pressed: intentionally call the ending method sooner
         self.timer.cancel()
         self.timer_ends(0)
 
     def handle_delete_press(self):
+        # when "Delete" key is pressed: cancel the task, send a special message to MAX and repeat
         self.timer.cancel()
 
         # send a message to stop recording on Max
@@ -197,6 +274,7 @@ class SoundsPodScreen(Screen):
         self.next_screen()
 
     def next_screen(self):
+        # called when a task is finished
         app = App.get_running_app()
 
         # Check if there are more blocks to run
@@ -217,6 +295,8 @@ class SoundsPodScreen(Screen):
         self.clear_widgets()
 
 class EndScreen(Screen):
+    # this screen appears when the protocol is ended (when App.protocol_blocks = [])
+
     def on_enter(self):
         self.layout = BoxLayout(orientation="vertical", padding=10, spacing=10)
         self.label = Label(text=f"Experiment protocol is ended.\nYou can play another patch\n\nPress ESC to exit", font_size=30)
@@ -227,12 +307,14 @@ class EndScreen(Screen):
 class MyApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.protocol_blocks = []
-        self.names = ""
-        self.current_patch = None
-        self.current_timer = None
+        self.protocol_blocks = []       # container for the different blocks in the protocol (ordered!)
+        self.names = ""                 # variable for the name of the subjects
+        self.current_patch = None       # dynamic variable for the current block
+        self.current_timer = None       # dynamic variable for the timer of the current block
 
     def on_start(self, *args):
+        # create a full window for the app and bring it to front
+
         if FULL_WINDOW:
             Window.fullscreen = True
             Window.borderless = True
@@ -245,10 +327,14 @@ class MyApp(App):
             ctypes.windll.user32.SetForegroundWindow(hwnd)  # Bring to front
 
     def on_stop(self, *args):
+        # when application stops, send "OFF" message to all patches
+
         for patch in patches:
             send_udp_message(on_off_client, patch, OFF)
 
     def build(self):
+        # create the different abstract screens of the application
+
         self.sm = ScreenManager()
         self.sm.add_widget(ChooseProtocolScreen(name="choose_protocol"))
         self.sm.add_widget(RegisterNamesScreen(name="register_names"))
