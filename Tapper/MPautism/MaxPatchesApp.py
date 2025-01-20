@@ -2,12 +2,12 @@ import pickle
 import socket
 import time
 import ctypes
-import numpy as np
 from pythonosc.udp_client import SimpleUDPClient
 from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
 from Tapper.App_Utilities.ChooseProtocolWidget import ProtocolWidget, ChoosePatchWidget
 from Tapper.Mirror_Pods_Widgets.SoundsPods import SoundsPods
 from Tapper.App_Utilities.ChooseProtocolWidget import patches
+from Tapper.MPautism.sync_utilities import sync_measures
 from udp_utilitites import *
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -53,13 +53,6 @@ delay_to_start = 1.
 # helper function to send UDP messages, given udp client and a message
 def send_udp_message(udp_client, address, message):
         udp_client.send_message(address, message)
-
-# helper function for the synchrony measurements
-def sync_measure(data1, data2, method=SYNC_MEASURE):
-    """expected list (not a numpy array) of dimensions: (2, 2) containing positional data"""
-
-    if method == "distance":
-        return np.linalg.norm(np.array(data2) - np.array(data1), axis=1)
 
 
 # Screens
@@ -197,6 +190,7 @@ class SoundsPodScreen(Screen):
         self.sync_data_listen.settimeout(TIME_SERIES_DT/10)
 
     def broadcast(self, dt):
+        print("bradcat")
 
         # send the data from SoundsWidget to MAX
         if self.mp_widg.active:
@@ -208,10 +202,11 @@ class SoundsPodScreen(Screen):
             try:
                 data, _ = self.sync_data_listen.recvfrom(1024)
                 pos_data_from_other = pickle.loads(data)
-                sync = sync_measure(pos_data_only, pos_data_from_other)
+                sync = sync_measures(pos_data_only, pos_data_from_other, SYNC_MEASURE)
+                print(sync)
                 send_udp_message(max_sync_measure_client, "sync", sync)
             except socket.timeout:
-                pass
+                print("no connection")
 
 
     def on_key_down(self, instance, keycode, text, modifiers, *kargs):

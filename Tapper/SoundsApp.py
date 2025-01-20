@@ -3,7 +3,6 @@ import sys
 from os import environ
 from MPautism.udp_utilitites import *
 from App_Utilities.utils import ALMOTUNUI_HOSTNAME, DISPLAY3_HOSTNAME, ALMOTUNUI_IP, DISPLAY3_IP
-from pythonosc.udp_client import SimpleUDPClient
 from Mirror_Pods_Widgets.SoundsPods import SoundsPods
 environ['SDL_VIDEODRIVER'] = 'windows'
 from kivy.clock import Clock
@@ -81,4 +80,4 @@ if __name__ == "__main__":
         mode = sys.argv[1]
 
     # Run the app
-    SoundsApp(mode="mouse", full_window=FULL_WINDOW).run()
+    SoundsApp(mode=mode, full_window=FULL_WINDOW).run()
