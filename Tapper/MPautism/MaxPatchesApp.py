@@ -1,14 +1,14 @@
+import pickle
+import socket
 import time
 import ctypes
 import numpy as np
 from pythonosc.udp_client import SimpleUDPClient
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
 from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
 from Tapper.App_Utilities.ChooseProtocolWidget import ProtocolWidget, ChoosePatchWidget
 from Tapper.Mirror_Pods_Widgets.SoundsPods import SoundsPods
 from Tapper.App_Utilities.ChooseProtocolWidget import patches
-from utilities import *
+from udp_utilitites import *
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
@@ -28,8 +28,11 @@ Config.set('postproc', 'retain_time', '20')
 Config.write()
 
 FULL_WINDOW = False
-TIME_SERIES_DT = 0.001   # sampling sound rate
-MODE = "wm_touch"        # change to "mouse" if want to debug
+TIME_SERIES_DT = 0.001   # sampling rate
+MODE = "wm_touch"        # change between "wm_touch" and "mouse"
+# how synchronization is measured, options are:
+# distance, velocity, acceleration
+SYNC_MEASURE = "distance"
 
 # UDP info for main computer
 host = "127.0.0.1"
@@ -52,14 +55,12 @@ def send_udp_message(udp_client, address, message):
         udp_client.send_message(address, message)
 
 # helper function for the synchrony measurements
-def sync_measure(data1, data2, method="distance"):
-    data1_ch_1, data1_ch_2 = data1[0:2], data1[3:5]
-    data2_ch_1, data2_ch_2 = data2[0:2], data2[3:5]
+def sync_measure(data1, data2, method=SYNC_MEASURE):
+    """expected list (not a numpy array) of dimensions: (2, 2) containing positional data"""
 
     if method == "distance":
-        ch1_sync = np.linalg.norm(data1_ch_1 - data2_ch_1)
-        ch2_sync = np.linalg.norm(data1_ch_2 - data2_ch_2)
-        return ch1_sync, ch2_sync
+        return np.linalg.norm(np.array(data2) - np.array(data1), axis=1)
+
 
 # Screens
 class ChooseProtocolScreen(Screen):
@@ -165,7 +166,6 @@ class SoundsPodScreen(Screen):
         super().__init__(**kwargs)
         self.positional = positional
         self.mode = mode
-        self.pos_data2 = None
         self.broadcaster = MaxMspBroadcaster(channels=n_channels, positional=self.positional, port=data_to_max_port_client_almotunui)
         self.mp_widg = SoundsPods(n_channels=n_channels, mode=self.mode)
         self.timer, self.sampling_event = None, None
@@ -191,41 +191,27 @@ class SoundsPodScreen(Screen):
         self.sampling_event = Clock.schedule_interval(self.broadcast, TIME_SERIES_DT)
 
     def define_listener_to_other_cpu(self):
-        # TODO: make this work: currently, the 'get_data_from_client' method is not been called at all
-        # TODO: other code is in "SoundsApp.py" line ~55
-        def get_data_from_client(addr, *args):
-            # the synd_data_listen uses this function to store the data from the other computer
-            print("get_data_from_client")
-            print(*args)
-            self.pos_data2 = list(args)
-            print(self.pos_data2)
-
         # defining the udp port that listen to data from other computer
-        self.sync_data_dispatcher = Dispatcher()
-        self.sync_data_dispatcher.set_default_handler(get_data_from_client)
-        self.sync_data_listen = BlockingOSCUDPServer(("127.0.0.1", data_to_sync_port), self.sync_data_dispatcher)
-        self.sync_data_listen.timeout = TIME_SERIES_DT / 10
-
-
+        self.sync_data_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sync_data_listen.bind((host, data_to_sync_port))
+        self.sync_data_listen.settimeout(TIME_SERIES_DT/10)
 
     def broadcast(self, dt):
 
         # send the data from SoundsWidget to MAX
         if self.mp_widg.active:
-            print("broadcasting data to MAX")
             data = self.mp_widg.get_data()
             self.broadcaster.broadcast(data)
 
-            print("getting from data2")
             pos_data = self.mp_widg.get_data(positional=True)
-            print("self positional data: ", pos_data)
-            # also send the synchrony measure, if needed
-            self.sync_data_listen.handle_request()
-            print("data2 positional data: ", self.pos_data2)
-            if self.pos_data2:
-                sync_data = sync_measure(pos_data, self.pos_data2)
-                print(sync_data)
-                self.pos_data2 = None
+            pos_data_only = [pos_data[0:2], pos_data[3:5]]
+            try:
+                data, _ = self.sync_data_listen.recvfrom(1024)
+                pos_data_from_other = pickle.loads(data)
+                sync = sync_measure(pos_data_only, pos_data_from_other)
+                send_udp_message(max_sync_measure_client, "sync", sync)
+            except socket.timeout:
+                pass
 
 
     def on_key_down(self, instance, keycode, text, modifiers, *kargs):

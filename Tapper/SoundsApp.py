@@ -1,6 +1,7 @@
+import pickle
 import sys
 from os import environ
-from MPautism.utilities import *
+from MPautism.udp_utilitites import *
 from App_Utilities.utils import ALMOTUNUI_HOSTNAME, DISPLAY3_HOSTNAME, ALMOTUNUI_IP, DISPLAY3_IP
 from pythonosc.udp_client import SimpleUDPClient
 from Mirror_Pods_Widgets.SoundsPods import SoundsPods
@@ -18,10 +19,10 @@ import socket
 # check if the current machine is a client or the main cpu and define the socket appropriately
 if socket.gethostname() == DISPLAY3_HOSTNAME:
     data_to_max_port = data_to_max_port_client_display3
-    data_to_max_host = ALMOTUNUI_IP
+    host = ALMOTUNUI_IP
 else:
     data_to_max_port = data_to_max_port_client_almotunui
-    data_to_max_host = "127.0.0.1"
+    host = "127.0.0.1"
 
 
 # Full window switch
@@ -43,8 +44,8 @@ class SoundsApp(MpApp):
         self.positional = positional
         self.mode = mode
         self.max_data_udp_client = MaxMspBroadcaster(channels=n_channels, positional=self.positional,
-                                                     host=data_to_max_host, port=data_to_max_port)
-        self.sync_data_udp_client = SimpleUDPClient("127.0.0.1", data_to_sync_port)
+                                                     host=host, port=data_to_max_port)
+        self.sync_data_udp_client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.mp_widg = SoundsPods(n_channels=n_channels, mode=self.mode)
         self.mp_widg.reset()
         self.mp_widg.activate()
@@ -53,14 +54,14 @@ class SoundsApp(MpApp):
         """
         Send the data through the broadcaster, which is a UDP socket to MaxMSP in this case
         """
-        # TODO: make this work, currently it seems the data is been sent but not been received
         if self.mp_widg.active:
             non_pos_data = self.mp_widg.get_data()
             self.max_data_udp_client.broadcast(non_pos_data)
 
             pos_data = self.mp_widg.get_data(positional=True)
-            print(f"sending port host: {pos_data[0:2] + pos_data[3:5]}, 127.0.0.1, {data_to_sync_port}", )
-            self.sync_data_udp_client.send_message("addr", pos_data[0:2] + pos_data[3:5])
+            pos_data_msg = [pos_data[0:2], pos_data[3:5]]
+            message = pickle.dumps(pos_data_msg)
+            self.sync_data_udp_client.sendto(message, (host, data_to_sync_port))
 
     def stop(self, *largs):
         """
