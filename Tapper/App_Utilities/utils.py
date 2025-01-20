@@ -9,7 +9,7 @@ Config.set('postproc', 'retain_time', '20')
 Config.write()
 
 # Turn this on if you are currently operating on a single computer
-CLIENT_DEV_MODE = True
+CLIENT_DEV_MODE = False
 # Turn this on if you are currently without a touch pad, and want enable mouse touches
 MOUSE_DEV_MODE = True
 # Full window switch
