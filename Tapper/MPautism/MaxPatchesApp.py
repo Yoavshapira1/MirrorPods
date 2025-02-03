@@ -88,6 +88,7 @@ class RegisterNamesScreen(Screen):
         if name:
             app = App.get_running_app()
             app.names = name
+            send_udp_message(main_patch_client, subjName, name)
             self.manager.current = "instruction"
         else:
             self.label.text = "Enter a name to proceed."
@@ -140,8 +141,6 @@ class InstructionScreen(Screen):
         self.manager.current = "sounds_widget"
 
         # send message to start the patch
-        udp_message = f"{app.names}_{self.patch_info['name']}_{self.patch_info['count']}"
-        send_udp_message(main_patch_client, subjName, udp_message)
         send_udp_message(main_patch_client, self.patch_info["name"], OPEN)
         time.sleep(delay_to_start)
         send_udp_message(on_off_client, self.patch_info["name"], ON)
