@@ -45,6 +45,7 @@ subjName = "subjectName"
 ON = "ON"
 OFF = "OFF"
 OPEN = "OPEN"
+COUNTER = "NUM"
 
 time_to_beep = 5
 delay_to_start = 1.
@@ -142,6 +143,7 @@ class InstructionScreen(Screen):
 
         # send message to start the patch
         send_udp_message(main_patch_client, self.patch_info["name"], OPEN)
+        send_udp_message(on_off_client, COUNTER, self.patch_info['count'])
         time.sleep(delay_to_start)
         send_udp_message(on_off_client, self.patch_info["name"], ON)
 
@@ -186,10 +188,9 @@ class SoundsPodScreen(Screen):
         # defining the udp port that listen to data from other computer
         self.sync_data_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sync_data_listen.bind((host, data_to_sync_port))
-        self.sync_data_listen.settimeout(TIME_SERIES_DT/10)
+        self.sync_data_listen.settimeout(TIME_SERIES_DT)
 
     def broadcast(self, dt):
-        print("bradcat")
 
         # send the data from SoundsWidget to MAX
         if self.mp_widg.active:
@@ -202,7 +203,6 @@ class SoundsPodScreen(Screen):
                 data, _ = self.sync_data_listen.recvfrom(1024)
                 pos_data_from_other = pickle.loads(data)
                 sync = sync_measures(pos_data_only, pos_data_from_other, SYNC_MEASURE)
-                print(sync)
                 send_udp_message(max_sync_measure_client, "sync", sync)
             except socket.timeout:
                 print("no connection")
