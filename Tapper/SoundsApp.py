@@ -1,6 +1,8 @@
 import pickle
 import sys
 from os import environ
+from pythonosc.udp_client import SimpleUDPClient
+from Tapper.MPautism.sync_utilities import sync_measures
 from MPautism.udp_utilitites import *
 from App_Utilities.utils import ALMOTUNUI_HOSTNAME, DISPLAY3_HOSTNAME, ALMOTUNUI_IP, DISPLAY3_IP
 from Mirror_Pods_Widgets.SoundsPods import SoundsPods
@@ -29,6 +31,11 @@ FULL_WINDOW = False
 # Time-Scale of UDP messages
 TIME_SERIES_DT = 0.001
 
+# for sending sync measure to max
+max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)
+SYNC_MEASURE = 'distance'   # sync method
+SYNC = 'sync'               # initial in usp msg to Max
+
 
 class SoundsApp(MpApp):
     """
@@ -48,6 +55,15 @@ class SoundsApp(MpApp):
         self.mp_widg = SoundsPods(n_channels=n_channels, mode=self.mode)
         self.mp_widg.reset()
         self.mp_widg.activate()
+        self.main_computer = socket.gethostname() == ALMOTUNUI_HOSTNAME
+        if self.main_computer:
+            self.define_listener_to_other_cpu()
+
+    def define_listener_to_other_cpu(self):
+        # defining the udp port that listen to data from other computer
+        self.sync_data_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sync_data_listen.bind((host, data_to_sync_port))
+        self.sync_data_listen.settimeout(TIME_SERIES_DT)
 
     def broadcast(self, dt):
         """
@@ -57,10 +73,25 @@ class SoundsApp(MpApp):
             non_pos_data = self.mp_widg.get_data()
             self.max_data_udp_client.broadcast(non_pos_data)
 
-            pos_data = self.mp_widg.get_data(positional=True)
-            pos_data_msg = [pos_data[0:2], pos_data[3:5]]
-            message = pickle.dumps(pos_data_msg)
-            self.sync_data_udp_client.sendto(message, (host, data_to_sync_port))
+            # get data for sync measures if this ia main computer
+            if self.main_computer:
+                pos_data = self.mp_widg.get_data(positional=True)
+                pos_data_only = [pos_data[0:2], pos_data[3:5]]
+                try:
+                    data, _ = self.sync_data_listen.recvfrom(1024)
+                    pos_data_from_other = pickle.loads(data)
+                    sync = sync_measures(pos_data_only, pos_data_from_other, SYNC_MEASURE)
+                    max_sync_measure_client.send_message(SYNC, sync)
+                except socket.timeout:
+                    max_sync_measure_client.send_message(SYNC, [0., 0.])
+
+            # send data for sync measures if this is secondary computer
+            else:
+                pos_data = self.mp_widg.get_data(positional=True)
+                pos_data_msg = [pos_data[0:2], pos_data[3:5]]
+                message = pickle.dumps(pos_data_msg)
+                self.sync_data_udp_client.sendto(message, (host, data_to_sync_port))
+
 
     def stop(self, *largs):
         """
@@ -75,7 +106,7 @@ class SoundsApp(MpApp):
 
 
 if __name__ == "__main__":
-    mode = "wm_touch"
+    mode = "mouse"
     if len(sys.argv) > 1:
         mode = sys.argv[1]
 
