@@ -45,6 +45,7 @@ subjName = "subjectName"
 ON = "ON"
 OFF = "OFF"
 OPEN = "OPEN"
+COUNTER = "NUM"
 
 time_to_beep = 5
 delay_to_start = 1.
@@ -142,6 +143,7 @@ class InstructionScreen(Screen):
 
         # send message to start the patch
         send_udp_message(main_patch_client, self.patch_info["name"], OPEN)
+        send_udp_message(on_off_client, COUNTER, self.patch_info['count'])
         time.sleep(delay_to_start)
         send_udp_message(on_off_client, self.patch_info["name"], ON)
 
@@ -201,7 +203,7 @@ class SoundsPodScreen(Screen):
                 data, _ = self.sync_data_listen.recvfrom(1024)
                 pos_data_from_other = pickle.loads(data)
                 sync = sync_measures(pos_data_only, pos_data_from_other, SYNC_MEASURE)
-                send_udp_message(max_sync_measure_client, "sync", *sync)
+                send_udp_message(max_sync_measure_client, "sync", sync)
             except socket.timeout:
                 print("no connection")
 
