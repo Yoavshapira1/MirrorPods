@@ -137,15 +137,14 @@ class InstructionScreen(Screen):
         # when "Enter" is pressed
 
         app = App.get_running_app()
-        print(self.patch_info["name"])
-        print(self.patch_info['count'])
+
         # Transition to MyWidget screen
         self.manager.current = "sounds_widget"
 
         # send message to start the patch
         send_udp_message(main_patch_client, self.patch_info["name"], OPEN)
-        send_udp_message(on_off_client, self.patch_info["name"], f"{COUNTER} {self.patch_info['count']}")
         time.sleep(delay_to_start)
+        send_udp_message(on_off_client, self.patch_info["name"], f"{COUNTER} {self.patch_info['count']}")
         send_udp_message(on_off_client, self.patch_info["name"], ON)
 
     def on_leave(self, *args):
