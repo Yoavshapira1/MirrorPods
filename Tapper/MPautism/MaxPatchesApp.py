@@ -4,9 +4,9 @@ import time
 import ctypes
 from pythonosc.udp_client import SimpleUDPClient
 from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
-from Tapper.App_Utilities.ChooseProtocolWidget import ProtocolWidget, ChoosePatchWidget
+from Tapper.MPautism.ChooseProtocolWidget import ProtocolWidget, ChoosePatchWidget
 from Tapper.Mirror_Pods_Widgets.SoundsPods import SoundsPods
-from Tapper.App_Utilities.ChooseProtocolWidget import patches
+from Tapper.MPautism.ChooseProtocolWidget import patches
 from Tapper.MPautism.sync_utilities import sync_measures
 from udp_utilitites import *
 from kivy.app import App
@@ -27,12 +27,15 @@ Config.set('graphics', 'maxfps', '0')
 Config.set('postproc', 'retain_time', '20')
 Config.write()
 
-FULL_WINDOW = False
+FULL_WINDOW = True
 TIME_SERIES_DT = 0.001   # sampling rate
 MODE = "wm_touch"        # change between "wm_touch" and "mouse"
 # how synchronization is measured, options are:
 # distance, velocity, acceleration
-SYNC_MEASURE = "distance"
+SYNC_MEASURE = "velocity"
+# sync measures messages rate, in ratio to normal positional message. performs time smooth to the sync signal
+sync_msg_ratio = 10 if SYNC_MEASURE == "velocity" else 1
+
 
 # UDP info for main computer
 host = "127.0.0.1"
@@ -48,9 +51,8 @@ OPEN = "OPEN"
 COUNTER = "NUM"
 SYNC = "sync"
 
-time_to_beep = 5
-delay_to_start = 1.
-
+time_to_beep = 2
+delay_to_start = 2   # let Max open the patch fully
 
 # helper function to send UDP messages, given udp client and a message
 def send_udp_message(udp_client, address, message):
@@ -164,6 +166,7 @@ class SoundsPodScreen(Screen):
         self.broadcaster = MaxMspBroadcaster(channels=n_channels, positional=self.positional, port=data_to_max_port_client_almotunui)
         self.mp_widg = SoundsPods(n_channels=n_channels, mode=self.mode)
         self.timer, self.sampling_event = None, None
+        self.broadcasts_counter = 0
 
     def on_enter(self):
         # starts the sampling event and the timer
@@ -192,21 +195,25 @@ class SoundsPodScreen(Screen):
         self.sync_data_listen.settimeout(TIME_SERIES_DT)
 
     def broadcast(self, dt):
+        self.broadcasts_counter += 1
 
         # send the data from SoundsWidget to MAX
         if self.mp_widg.active:
             data = self.mp_widg.get_data()
             self.broadcaster.broadcast(data)
 
-            pos_data = self.mp_widg.get_data(positional=True)
-            pos_data_only = [pos_data[0:2], pos_data[3:5]]
-            try:
-                data, _ = self.sync_data_listen.recvfrom(1024)
-                pos_data_from_other = pickle.loads(data)
-                sync = sync_measures(pos_data_only, pos_data_from_other, SYNC_MEASURE)
-                send_udp_message(max_sync_measure_client, SYNC, sync)
-            except socket.timeout:
-                send_udp_message(max_sync_measure_client, SYNC, [0, 0.])
+            if self.broadcasts_counter % sync_msg_ratio == 0:
+                self.broadcasts_counter = 0
+                pos_data = self.mp_widg.get_data(positional=True)
+                pos_data_only = [pos_data[0:2], pos_data[3:5]]
+                try:
+                    data, _ = self.sync_data_listen.recvfrom(1024)
+                    pos_data_from_other = pickle.loads(data)
+                    sync = sync_measures(pos_data_only, pos_data_from_other,
+                                         dt=sync_msg_ratio*TIME_SERIES_DT, method=SYNC_MEASURE)
+                    send_udp_message(max_sync_measure_client, SYNC, sync)
+                except socket.timeout:
+                    pass
 
 
     def on_key_down(self, instance, keycode, text, modifiers, *kargs):
