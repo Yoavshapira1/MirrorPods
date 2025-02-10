@@ -27,13 +27,15 @@ else:
 
 
 # Full window switch
-FULL_WINDOW = False
+FULL_WINDOW = True
 # Time-Scale of UDP messages
 TIME_SERIES_DT = 0.001
 
 # for sending sync measure to max
 max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)
 SYNC_MEASURE = 'distance'   # sync method
+# sync measures messages rate, in ratio to normal positional message. performs time smooth to the sync signal
+sync_msg_ratio = 10 if SYNC_MEASURE == "velocity" else 1
 SYNC = 'sync'               # initial in usp msg to Max
 
 
@@ -58,6 +60,7 @@ class SoundsApp(MpApp):
         self.main_computer = socket.gethostname() == ALMOTUNUI_HOSTNAME
         if self.main_computer:
             self.define_listener_to_other_cpu()
+            self.broadcasts_counter = 0
 
     def define_listener_to_other_cpu(self):
         # defining the udp port that listen to data from other computer
@@ -75,15 +78,19 @@ class SoundsApp(MpApp):
 
             # get data for sync measures if this ia main computer
             if self.main_computer:
-                pos_data = self.mp_widg.get_data(positional=True)
-                pos_data_only = [pos_data[0:2], pos_data[3:5]]
-                try:
-                    data, _ = self.sync_data_listen.recvfrom(1024)
-                    pos_data_from_other = pickle.loads(data)
-                    sync = sync_measures(pos_data_only, pos_data_from_other, SYNC_MEASURE)
-                    max_sync_measure_client.send_message(SYNC, sync)
-                except socket.timeout:
-                    max_sync_measure_client.send_message(SYNC, [0., 0.])
+                self.broadcasts_counter += 1
+                if self.broadcasts_counter % sync_msg_ratio == 0:
+                    self.broadcasts_counter = 0
+                    pos_data = self.mp_widg.get_data(positional=True)
+                    pos_data_only = [pos_data[0:2], pos_data[3:5]]
+                    try:
+                        data, _ = self.sync_data_listen.recvfrom(1024)
+                        pos_data_from_other = pickle.loads(data)
+                        sync = sync_measures(pos_data_only, pos_data_from_other,
+                                             dt=sync_msg_ratio * TIME_SERIES_DT, method=SYNC_MEASURE)
+                        max_sync_measure_client.send_message(SYNC, sync)
+                    except socket.timeout:
+                        pass
 
             # send data for sync measures if this is secondary computer
             else:
