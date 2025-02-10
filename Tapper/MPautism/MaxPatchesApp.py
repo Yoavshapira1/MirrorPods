@@ -32,7 +32,7 @@ TIME_SERIES_DT = 0.001   # sampling rate
 MODE = "wm_touch"        # change between "wm_touch" and "mouse"
 # how synchronization is measured, options are:
 # distance, velocity, acceleration
-SYNC_MEASURE = "velocity"
+SYNC_MEASURE = "distance"
 # sync measures messages rate, in ratio to normal positional message. performs time smooth to the sync signal
 sync_msg_ratio = 10 if SYNC_MEASURE == "velocity" else 1
 
