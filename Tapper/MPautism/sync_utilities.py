@@ -16,7 +16,7 @@ normalization_parameters = {
     "velocity": {"exp_lambda": 5.35, "max_val": 3}
 }
 
-# velocity measure helpers
+# velocity measure helpers, since velocity is calculated between two points
 prev_pos_data1 = [[-1.0, -1.0], [-1.0, -1.0]]
 prev_pos_data2 = [[-1.0, -1.0], [-1.0, -1.0]]
 N = 50  # how much to smooth velocity traces
