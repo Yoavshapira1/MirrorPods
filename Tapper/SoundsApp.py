@@ -29,7 +29,7 @@ else:
 
 
 # Full window switch
-FULL_WINDOW = True
+FULL_WINDOW = False
 # Time-Scale of UDP messages
 TIME_SERIES_DT = 0.001
 

@@ -43,7 +43,7 @@ host = "127.0.0.1"
 main_patch_client = SimpleUDPClient(host, main_patch_port)
 on_off_client = SimpleUDPClient(host, ON_OFF_port)
 max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)
-sync_data_ip = DISPLAY3_IP
+sync_data_ip = ALMOTUNUI_IP
 
 # messages to MAX variables
 subjName = "subjectName"

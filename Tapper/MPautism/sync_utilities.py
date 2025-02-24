@@ -35,6 +35,7 @@ def noramlize_values(values, method):
 
     # transform to uniform distribution, suppose the data is distributed exponentially
     data_uniform = 1 - np.exp(-exp_lambda * norm_dist)
+    # data_uniform = norm_dist
 
     # scale to [0, 100] where 0 (0 distance) mapped to 100 (full sync)
     rescaled = max_score - (data_uniform * max_score)
@@ -69,4 +70,5 @@ def sync_measures(pos_data_1, pos_data_2, dt=0.001, method="distance"):
 
     prev_pos_data1 = pos_data_1
     prev_pos_data2 = pos_data_2
+
     return sync
