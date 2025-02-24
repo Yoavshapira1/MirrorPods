@@ -12,14 +12,14 @@ max_score = 100     # full synchronization
 # calculate the distribution parameters.
 # NOTE - lambda of an exponential dist is estimated by 1 / mean of the distribution)
 normalization_parameters = {
-    "distance": {"exp_lambda": 1., "max_val": np.sqrt(2)},
-    "velocity": {"exp_lambda": 5.35, "max_val": 3}
+    "distance": {"exp_lambda": 2., "max_val": np.sqrt(2)},
+    "velocity": {"exp_lambda": 2.7, "max_val": 2}
 }
 
 # velocity measure helpers, since velocity is calculated between two points
 prev_pos_data1 = [[-1.0, -1.0], [-1.0, -1.0]]
 prev_pos_data2 = [[-1.0, -1.0], [-1.0, -1.0]]
-N = 50  # how much to smooth velocity traces
+N = 65  # how much to smooth velocity traces
 prev_N_velocity_values = np.ones((N, 2)) * max_score    # initialize to full sync, which means no movement
 
 

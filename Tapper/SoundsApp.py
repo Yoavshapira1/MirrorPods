@@ -29,13 +29,13 @@ else:
 
 
 # Full window switch
-FULL_WINDOW = False
+FULL_WINDOW = True
 # Time-Scale of UDP messages
 TIME_SERIES_DT = 0.001
 
 # for sending sync measure to max
 max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)
-SYNC_MEASURE = 'distance'   # sync method
+SYNC_MEASURE = 'distance'   # sync method, options: distance, velocity
 # sync measures messages rate, in ratio to normal positional message. performs time smooth to the sync signal
 sync_msg_ratio = 10 if SYNC_MEASURE == "velocity" else 1
 SYNC = 'sync'               # initial in usp msg to Max
