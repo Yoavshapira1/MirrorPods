@@ -5,6 +5,7 @@ import ctypes
 from pythonosc.udp_client import SimpleUDPClient
 from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
 from Tapper.MPautism.ChooseProtocolWidget import ProtocolWidget, ChoosePatchWidget
+from Tapper.App_Utilities.utils import ALMOTUNUI_HOSTNAME, DISPLAY3_HOSTNAME, ALMOTUNUI_IP, DISPLAY3_IP
 from Tapper.Mirror_Pods_Widgets.SoundsPods import SoundsPods
 from Tapper.MPautism.ChooseProtocolWidget import patches
 from Tapper.MPautism.sync_utilities import sync_measures
@@ -42,6 +43,7 @@ host = "127.0.0.1"
 main_patch_client = SimpleUDPClient(host, main_patch_port)
 on_off_client = SimpleUDPClient(host, ON_OFF_port)
 max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)
+sync_data_ip = DISPLAY3_IP
 
 # messages to MAX variables
 subjName = "subjectName"
@@ -191,7 +193,7 @@ class SoundsPodScreen(Screen):
     def define_listener_to_other_cpu(self):
         # defining the udp port that listen to data from other computer
         self.sync_data_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sync_data_listen.bind((host, data_to_sync_port))
+        self.sync_data_listen.bind((sync_data_ip, data_to_sync_port))
         self.sync_data_listen.settimeout(TIME_SERIES_DT)
 
     def broadcast(self, dt):

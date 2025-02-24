@@ -21,8 +21,10 @@ import socket
 if socket.gethostname() == DISPLAY3_HOSTNAME:
     data_to_max_port = data_to_max_port_client_display3
     host = ALMOTUNUI_IP
+    sync_data_ip = DISPLAY3_IP
 else:
     data_to_max_port = data_to_max_port_client_almotunui
+    sync_data_ip = ALMOTUNUI_IP
     host = "127.0.0.1"
 
 
@@ -65,7 +67,7 @@ class SoundsApp(MpApp):
     def define_listener_to_other_cpu(self):
         # defining the udp port that listen to data from other computer
         self.sync_data_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sync_data_listen.bind((host, data_to_sync_port))
+        self.sync_data_listen.bind((sync_data_ip, data_to_sync_port))
         self.sync_data_listen.settimeout(TIME_SERIES_DT)
 
     def broadcast(self, dt):
@@ -113,7 +115,7 @@ class SoundsApp(MpApp):
 
 
 if __name__ == "__main__":
-    mode = "mouse"
+    mode = "wm_touch"
     if len(sys.argv) > 1:
         mode = sys.argv[1]
 
