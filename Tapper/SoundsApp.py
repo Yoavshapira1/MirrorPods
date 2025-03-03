@@ -4,6 +4,7 @@ from os import environ
 from pythonosc.udp_client import SimpleUDPClient
 from Tapper.MPautism.sync_utilities import sync_measures
 from MPautism.udp_utilitites import *
+from App_Utilities.GUI import PopupForSoundsApp
 from App_Utilities.utils import ALMOTUNUI_HOSTNAME, DISPLAY3_HOSTNAME, ALMOTUNUI_IP, DISPLAY3_IP
 from Mirror_Pods_Widgets.SoundsPods import SoundsPods
 environ['SDL_VIDEODRIVER'] = 'windows'
@@ -29,7 +30,7 @@ else:
 
 
 # Full window switch
-FULL_WINDOW = True
+FULL_WINDOW = False
 # Time-Scale of UDP messages
 TIME_SERIES_DT = 0.001
 
@@ -39,6 +40,7 @@ SYNC_MEASURE = 'distance'   # sync method, options: distance, velocity
 # sync measures messages rate, in ratio to normal positional message. performs time smooth to the sync signal
 sync_msg_ratio = 10 if SYNC_MEASURE == "velocity" else 1
 SYNC = 'sync'               # initial in usp msg to Max
+
 
 
 class SoundsApp(MpApp):
@@ -53,7 +55,8 @@ class SoundsApp(MpApp):
         super().__init__(**kwargs)
         self.positional = positional
         self.mode = mode
-        self.max_data_udp_client = MaxMspBroadcaster(channels=n_channels, positional=self.positional,
+        self.n_channels = n_channels
+        self.max_data_udp_client = MaxMspBroadcaster(channels=self.n_channels, positional=self.positional,
                                                      host=host, port=data_to_max_port)
         self.sync_data_udp_client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.mp_widg = SoundsPods(n_channels=n_channels, mode=self.mode)
@@ -63,6 +66,14 @@ class SoundsApp(MpApp):
         if self.main_computer:
             self.define_listener_to_other_cpu()
             self.broadcasts_counter = 0
+        else:
+            self.popup = PopupForSoundsApp(function=self.local_path_or_not)
+            self.popup.open()
+
+    def local_path_or_not(self, choice):
+        if choice == "Local":
+            self.max_data_udp_client = MaxMspBroadcaster(channels=self.n_channels, positional=self.positional,
+                                                         host="127.0.0.1", port=2223)
 
     def define_listener_to_other_cpu(self):
         # defining the udp port that listen to data from other computer
