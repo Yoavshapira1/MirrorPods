@@ -28,7 +28,7 @@ Config.set('graphics', 'maxfps', '0')
 Config.set('postproc', 'retain_time', '20')
 Config.write()
 
-FULL_WINDOW = True
+FULL_WINDOW = False
 TIME_SERIES_DT = 0.001   # sampling rate
 MODE = "wm_touch"        # change between "wm_touch" and "mouse"
 # how synchronization is measured, options are:
@@ -81,7 +81,7 @@ class RegisterNamesScreen(Screen):
                                 pos_hint={"center_x": 0.5, "center_y": 0.5},
                                 padding=10, spacing=10)
         self.label = Label(text="Enter subject name:")
-        self.text_input = TextInput(multiline=False)
+        self.text_input = TextInput(multiline=False, on_text_validate=self.submit_name)
         self.submit_button = Button(text="Submit")
         self.submit_button.bind(on_press=self.submit_name)
         self.layout.add_widget(self.label)
@@ -111,6 +111,7 @@ class InstructionScreen(Screen):
         self.is_repeated = False
 
     def on_enter(self):
+
         # listen to keyboard; when "Enter" pressed - start the task
         Window.bind(on_key_down=self.on_key_down)  # Bind keyboard events
 
@@ -138,6 +139,9 @@ class InstructionScreen(Screen):
         if keycode == 13:  # 13 is the "Enter" key
             self.handle_enter_press()
 
+        if keycode == 8:  # 8 is the "Backspace" key
+            self.handle_backspace_press()
+
     def handle_enter_press(self):
         # when "Enter" is pressed
 
@@ -151,6 +155,14 @@ class InstructionScreen(Screen):
         time.sleep(delay_to_start)
         send_udp_message(on_off_client, self.patch_info["name"], f"{COUNTER} {self.patch_info['count']}")
         send_udp_message(on_off_client, self.patch_info["name"], ON)
+
+    def handle_backspace_press(self):
+        # when "Backspace" is pressed
+
+        app = App.get_running_app()
+
+        # Transition to end screen, where user able to start a random patch
+        self.manager.current = "end"
 
     def on_leave(self, *args):
         # when finished, stop listening to keyboard and clear the screen (prevent the labels to show on next block)
@@ -191,10 +203,13 @@ class SoundsPodScreen(Screen):
         self.sampling_event = Clock.schedule_interval(self.broadcast, TIME_SERIES_DT)
 
     def define_listener_to_other_cpu(self):
-        # defining the udp port that listen to data from other computer
-        self.sync_data_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sync_data_listen.bind((sync_data_ip, data_to_sync_port))
-        self.sync_data_listen.settimeout(TIME_SERIES_DT)
+        try:
+            # defining the udp port that listen to data from other computer
+            self.sync_data_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.sync_data_listen.bind((sync_data_ip, data_to_sync_port))
+            self.sync_data_listen.settimeout(TIME_SERIES_DT)
+        except:
+            self.sync_data_listen = None
 
     def broadcast(self, dt):
         self.broadcasts_counter += 1
@@ -204,18 +219,20 @@ class SoundsPodScreen(Screen):
             data = self.mp_widg.get_data()
             self.broadcaster.broadcast(data)
 
-            if self.broadcasts_counter % sync_msg_ratio == 0:
-                self.broadcasts_counter = 0
-                pos_data = self.mp_widg.get_data(positional=True)
-                pos_data_only = [pos_data[0:2], pos_data[3:5]]
-                try:
-                    data, _ = self.sync_data_listen.recvfrom(1024)
-                    pos_data_from_other = pickle.loads(data)
-                    sync = sync_measures(pos_data_only, pos_data_from_other,
-                                         dt=sync_msg_ratio*TIME_SERIES_DT, method=SYNC_MEASURE)
-                    send_udp_message(max_sync_measure_client, SYNC, sync)
-                except socket.timeout:
-                    pass
+            # sync data
+            if self.sync_data_listen:
+                if self.broadcasts_counter % sync_msg_ratio == 0:
+                    self.broadcasts_counter = 0
+                    pos_data = self.mp_widg.get_data(positional=True)
+                    pos_data_only = [pos_data[0:2], pos_data[3:5]]
+                    try:
+                        data, _ = self.sync_data_listen.recvfrom(1024)
+                        pos_data_from_other = pickle.loads(data)
+                        sync = sync_measures(pos_data_only, pos_data_from_other,
+                                             dt=sync_msg_ratio*TIME_SERIES_DT, method=SYNC_MEASURE)
+                        send_udp_message(max_sync_measure_client, SYNC, sync)
+                    except socket.timeout:
+                        pass
 
 
     def on_key_down(self, instance, keycode, text, modifiers, *kargs):
@@ -226,6 +243,7 @@ class SoundsPodScreen(Screen):
 
         if keycode == 127:  # 127 is the "Delete" key
             self.handle_delete_press()
+
 
     def handle_space_press(self):
         # when "Space" key is pressed: intentionally call the ending method sooner
@@ -287,12 +305,44 @@ class SoundsPodScreen(Screen):
 class EndScreen(Screen):
     # this screen appears when the protocol is ended (when App.protocol_blocks = [])
 
+    # variables to tracks if user skipped to here and needs to go back to protocol flow
+    patch_state, timer_state, protocol_blocks_state = None, None, []
+
     def on_enter(self):
+        self.remember_current_state()
+        Window.bind(on_key_down=self.on_key_down)
         self.layout = BoxLayout(orientation="vertical", padding=10, spacing=10)
         self.label = Label(text=f"Experiment protocol is ended.\nYou can play another patch\n\nPress ESC to exit", font_size=30)
         self.layout.add_widget(self.label)
         self.layout.add_widget(ChoosePatchWidget())
         self.add_widget(self.layout)
+
+    def remember_current_state(self):
+        if not self.protocol_blocks_state:
+            app = App.get_running_app()
+            self.patch_state, self.timer_state = app.current_patch, app.current_timer
+            self.protocol_blocks_state = app.protocol_blocks
+            app.protocol_blocks = []
+
+    def recover_state_before(self):
+        app = App.get_running_app()
+        app.current_patch, app.current_timer = self.patch_state, self.timer_state
+        app.protocol_blocks = [(self.patch_state, self.timer_state)] + self.protocol_blocks_state
+        self.patch_state, self.timer_state, self.protocol_blocks_state = None, None, []
+
+    def on_key_down(self, instance, keycode, text, modifiers, *kargs):
+        if keycode == 8:  # 8 is the "Backspace" key
+            self.handle_backspace_press()
+
+    def handle_backspace_press(self):
+        # when "Backspace" key is pressed:
+        # if there are more blocks to run, then go back to protocol - otherwise do nothing
+        self.recover_state_before()
+        self.manager.current = "instruction"
+
+    def on_leave(self, *args):
+        Window.unbind(on_key_down=self.on_key_down)
+        self.clear_widgets()
 
 class MyApp(App):
     def __init__(self, **kwargs):

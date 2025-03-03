@@ -139,10 +139,11 @@ class ProtocolWidget(BoxLayout):
         popup_layout.add_widget(patches_layout)
 
         def timer_input(patch_name):
-            input_timer_popup = Popup(title=f"Enter Timer for: {patch_name}", size_hint=(0.18, 0.12), auto_dismiss=False)
+            input_timer_popup = Popup(title=f"Enter Timer for: {patch_name}", size_hint=(0.3, 0.12), auto_dismiss=False)
             input_layout = BoxLayout(size_hint_y=None, height=40)
-            timer_input = TextInput(hint_text="Timer (sec)", input_filter="int", multiline=False)
+            timer_input = TextInput(hint_text="Leave blank for unlimited", input_filter="int", multiline=False)
             ok_button = Button(text="OK", on_press=lambda x: [self.add_block(input_timer_popup, patch_name, timer_input)])
+            timer_input.bind(on_text_validate=lambda x: [self.add_block(input_timer_popup, patch_name, timer_input)])
             # add widgets for input (timer input & OK button)
             input_layout.add_widget(timer_input)
             input_layout.add_widget(ok_button)
@@ -185,9 +186,9 @@ class ProtocolWidget(BoxLayout):
 
     def add_block(self, timer_popup, block_name, timer_input):
         if not timer_input.text:
-            self.show_popup("Error", "Timer is required!")
-            return
-        timer = timer_input.text.strip()
+            timer = 987654321
+        else:
+            timer = timer_input.text.strip()
         self.current_blocks.append({"name": block_name, "timer": timer})
         self.update_blocks_list()
         timer_input.text = ""
@@ -221,7 +222,7 @@ class ProtocolWidget(BoxLayout):
         # Popup for Protocol Name
         save_layout = BoxLayout(orientation="vertical", spacing=10, padding=10)
         save_layout.add_widget(Label(text="Enter Protocol Name:"))
-        protocol_input = TextInput(hint_text="Protocol Name", multiline=False)
+        protocol_input = TextInput(hint_text="Protocol Name", multiline=False, on_text_validate=save_protocol_name)
         save_layout.add_widget(protocol_input)
         save_button = Button(text="Save", on_press=save_protocol_name)
         save_layout.add_widget(save_button)
@@ -265,6 +266,7 @@ class ChoosePatchWidget(BoxLayout):
             input_timer_popup = Popup(title=f"Enter Timer for: {patch_name}.", size_hint=(0.42, 0.12), auto_dismiss=False)
             input_layout = BoxLayout(size_hint_y=None, height=40)
             timer_input = TextInput(hint_text="For unlimited session, leave blank", input_filter="int", multiline=False)
+            timer_input.bind(on_text_validate=lambda x, popup=input_timer_popup: self.update_current_block(popup, patch_name, timer_input))
             ok_button = Button(text="OK", on_press=lambda x, popup=input_timer_popup: self.update_current_block(popup, patch_name, timer_input))
             # add widgets for input (timer input & OK button)
             input_layout.add_widget(timer_input)
