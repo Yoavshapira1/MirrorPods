@@ -28,7 +28,7 @@ Config.set('graphics', 'maxfps', '0')
 Config.set('postproc', 'retain_time', '20')
 Config.write()
 
-FULL_WINDOW = False
+FULL_WINDOW = True
 TIME_SERIES_DT = 0.001   # sampling rate
 MODE = "wm_touch"        # change between "wm_touch" and "mouse"
 # how synchronization is measured, options are:
@@ -46,11 +46,13 @@ max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)
 sync_data_ip = ALMOTUNUI_IP
 
 # messages to MAX variables
-subjName = "subjectName"
-ON = "ON"
-OFF = "OFF"
-OPEN = "OPEN"
-COUNTER = "NUM"
+subjName = "subjectName"   # for naming the file
+OPEN = "OPEN"           # open a certain patch
+COUNTER = "NUM"         # for naming the file
+REC_ON = "RECON"       # indicate to record the session
+REC_OFF = "RECOFF"     # indicate to not record the session
+ON = "ON"               # sounds on
+OFF = "OFF"             # sounds (and recordings if any) off
 SYNC = "sync"
 
 time_to_beep = 2
@@ -109,6 +111,7 @@ class InstructionScreen(Screen):
         self.layout = None
         self.patch_info = None
         self.is_repeated = False
+        self.is_recording = True
 
     def on_enter(self):
 
@@ -154,7 +157,12 @@ class InstructionScreen(Screen):
         send_udp_message(main_patch_client, self.patch_info["name"], OPEN)
         time.sleep(delay_to_start)
         send_udp_message(on_off_client, self.patch_info["name"], f"{COUNTER} {self.patch_info['count']}")
+        if self.is_recording:
+            send_udp_message(on_off_client, self.patch_info["name"], REC_ON)
+        else:
+            send_udp_message(on_off_client, self.patch_info["name"], REC_OFF)
         send_udp_message(on_off_client, self.patch_info["name"], ON)
+        send_udp_message(on_off_client, self.patch_info["name"], OFF)
 
     def handle_backspace_press(self):
         # when "Backspace" is pressed
@@ -309,7 +317,7 @@ class EndScreen(Screen):
     patch_state, timer_state, protocol_blocks_state = None, None, []
 
     def on_enter(self):
-        self.remember_current_state()
+        self.remember_current_state()   # save the state before this screen, in case user pressed "backspace"
         Window.bind(on_key_down=self.on_key_down)
         self.layout = BoxLayout(orientation="vertical", padding=10, spacing=10)
         self.label = Label(text=f"Experiment protocol is ended.\nYou can play another patch\n\nPress ESC to exit", font_size=30)
@@ -318,17 +326,29 @@ class EndScreen(Screen):
         self.add_widget(self.layout)
 
     def remember_current_state(self):
-        if not self.protocol_blocks_state:
+        if not self.protocol_blocks_state:      # if the EndScreen was manually acquired for demonstration session
             app = App.get_running_app()
+
+            # save the state of the experiment before this screen entered
             self.patch_state, self.timer_state = app.current_patch, app.current_timer
             self.protocol_blocks_state = app.protocol_blocks
             app.protocol_blocks = []
 
+            # make sure that demonstration will not be recorded
+            inst_screen = self.manager.get_screen("instruction")
+            inst_screen.is_recording = False
+
     def recover_state_before(self):
         app = App.get_running_app()
+
+        # recover the experiment state before the demonstration
         app.current_patch, app.current_timer = self.patch_state, self.timer_state
         app.protocol_blocks = [(self.patch_state, self.timer_state)] + self.protocol_blocks_state
         self.patch_state, self.timer_state, self.protocol_blocks_state = None, None, []
+
+        # make sure that sessions will be recorded
+        inst_screen = self.manager.get_screen("instruction")
+        inst_screen.is_recording = True
 
     def on_key_down(self, instance, keycode, text, modifiers, *kargs):
         if keycode == 8:  # 8 is the "Backspace" key
