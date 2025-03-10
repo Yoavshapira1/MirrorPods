@@ -334,9 +334,10 @@ class EndScreen(Screen):
             self.protocol_blocks_state = app.protocol_blocks
             app.protocol_blocks = []
 
-            # make sure that demonstration will not be recorded
-            inst_screen = self.manager.get_screen("instruction")
-            inst_screen.is_recording = False
+            # in case this screen is for demonstration, make sure that demonstration will not be recorded
+            if not self.protocol_blocks_state:
+                inst_screen = self.manager.get_screen("instruction")
+                inst_screen.is_recording = False
 
     def recover_state_before(self):
         app = App.get_running_app()
