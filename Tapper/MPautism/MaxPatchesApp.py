@@ -28,7 +28,7 @@ Config.set('graphics', 'maxfps', '0')
 Config.set('postproc', 'retain_time', '20')
 Config.write()
 
-FULL_WINDOW = True
+FULL_WINDOW = False
 TIME_SERIES_DT = 0.001   # sampling rate
 MODE = "wm_touch"        # change between "wm_touch" and "mouse"
 # how synchronization is measured, options are:
@@ -143,7 +143,9 @@ class InstructionScreen(Screen):
             self.handle_enter_press()
 
         if keycode == 8:  # 8 is the "Backspace" key
-            self.handle_backspace_press()
+            end_screen = self.manager.get_screen("end")
+            if not end_screen.is_demonstration:
+                self.handle_backspace_press()
 
     def handle_enter_press(self):
         # when "Enter" is pressed
@@ -250,7 +252,10 @@ class SoundsPodScreen(Screen):
             self.handle_space_press()
 
         if keycode == 127:  # 127 is the "Delete" key
-            self.handle_delete_press()
+            # check if this session is demonstration, and disable this option if yes
+            end_screen = self.manager.get_screen("end")
+            if not end_screen.is_demonstration:
+                self.handle_delete_press()
 
 
     def handle_space_press(self):
@@ -315,6 +320,7 @@ class EndScreen(Screen):
 
     # variables to tracks if user skipped to here and needs to go back to protocol flow
     patch_state, timer_state, protocol_blocks_state = None, None, []
+    is_demonstration = False
 
     def on_enter(self):
         self.remember_current_state()   # save the state before this screen, in case user pressed "backspace"
@@ -326,8 +332,11 @@ class EndScreen(Screen):
         self.add_widget(self.layout)
 
     def remember_current_state(self):
-        if not self.protocol_blocks_state:      # if the EndScreen was manually acquired for demonstration session
-            app = App.get_running_app()
+        app = App.get_running_app()
+
+        # if there are more blocks to run, then this screen is for demonstration
+        if app.protocol_blocks:
+            self.is_demonstration = True
 
             # save the state of the experiment before this screen entered
             self.patch_state, self.timer_state = app.current_patch, app.current_timer
@@ -335,9 +344,8 @@ class EndScreen(Screen):
             app.protocol_blocks = []
 
             # in case this screen is for demonstration, make sure that demonstration will not be recorded
-            if not self.protocol_blocks_state:
-                inst_screen = self.manager.get_screen("instruction")
-                inst_screen.is_recording = False
+            inst_screen = self.manager.get_screen("instruction")
+            inst_screen.is_recording = False
 
     def recover_state_before(self):
         app = App.get_running_app()
@@ -351,9 +359,13 @@ class EndScreen(Screen):
         inst_screen = self.manager.get_screen("instruction")
         inst_screen.is_recording = True
 
+        # reset the demonstration flag
+        self.is_demonstration = False
+
     def on_key_down(self, instance, keycode, text, modifiers, *kargs):
-        if keycode == 8:  # 8 is the "Backspace" key
-            self.handle_backspace_press()
+        if self.is_demonstration:
+            if keycode == 8:  # 8 is the "Backspace" key
+                self.handle_backspace_press()
 
     def handle_backspace_press(self):
         # when "Backspace" key is pressed:
