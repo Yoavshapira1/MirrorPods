@@ -65,12 +65,22 @@ class SoundsApp(MpApp):
         if self.main_computer:
             self.define_listener_to_other_cpu()
             self.broadcasts_counter = 0
+        else:
+            self.secondary_cpu_listen_to_main()
 
     def define_listener_to_other_cpu(self):
         # defining the udp port that listen to data from other computer
         self.sync_data_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sync_data_listen.bind((sync_data_ip, data_to_sync_port))
         self.sync_data_listen.settimeout(TIME_SERIES_DT)
+
+    def secondary_cpu_listen_to_main(self):
+        try:
+            self.radius_size_getter = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.radius_size_getter.bind((SECONDARY_CPU_IP, 8765))
+            self.radius_size_getter.settimeout(TIME_SERIES_DT)
+        except:
+            self.sync_data_listen = None
 
     def broadcast(self, dt):
         """
@@ -96,8 +106,13 @@ class SoundsApp(MpApp):
                     except socket.timeout:
                         pass
 
-            # send data for sync measures if this is secondary computer
             else:
+                try:
+                    data, _ = self.sync_data_listen.recvfrom(1024)
+                    print(data)
+                except:
+                    pass
+
                 pos_data = self.mp_widg.get_data(positional=True)
                 pos_data_msg = [pos_data[0:2], pos_data[3:5]]
                 message = pickle.dumps(pos_data_msg)

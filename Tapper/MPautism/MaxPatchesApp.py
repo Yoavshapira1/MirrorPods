@@ -43,6 +43,7 @@ host = "127.0.0.1"
 main_patch_client = SimpleUDPClient(host, main_patch_port)
 on_off_client = SimpleUDPClient(host, ON_OFF_port)
 max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)
+udp_to_client = SimpleUDPClient(SECONDARY_CPU_IP, 8765)
 sync_data_ip = MAIN_CPU_IP
 
 # messages to MAX variables
@@ -169,7 +170,6 @@ class InstructionScreen(Screen):
 
     def handle_backspace_press(self):
         # when "Backspace" is pressed
-
         app = App.get_running_app()
 
         # Transition to end screen, where user able to start a random patch
@@ -200,11 +200,14 @@ class SoundsPodScreen(Screen):
         Window.bind(on_key_down=self.on_key_down)
 
         # define the listener to data from other cpu
-        self.define_listener_to_other_cpu()
+        self.main_cpu_listen_to_second()
 
         app = App.get_running_app()
         self.mp_widg.set_radius_size(patches[app.current_patch]["radius_size"])
         timer = app.current_timer
+
+        # send radius size to secondary cpu
+        send_udp_message(udp_to_client, "radius size", patches[app.current_patch]["radius_size"])
 
         # Schedule end of timer
         self.timer = Clock.schedule_once(self.timer_ends, timer + time_to_beep)
@@ -214,7 +217,7 @@ class SoundsPodScreen(Screen):
         self.add_widget(self.mp_widg)
         self.sampling_event = Clock.schedule_interval(self.broadcast, TIME_SERIES_DT)
 
-    def define_listener_to_other_cpu(self):
+    def main_cpu_listen_to_second(self):
         try:
             # defining the udp port that listen to data from other computer
             self.sync_data_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
