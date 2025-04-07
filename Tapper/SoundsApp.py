@@ -5,7 +5,7 @@ from pythonosc.udp_client import SimpleUDPClient
 from Tapper.MPautism.sync_utilities import sync_measures
 from MPautism.udp_utilitites import *
 from App_Utilities.GUI import PopupForSoundsApp
-from App_Utilities.utils import ALMOTUNUI_HOSTNAME, DISPLAY3_HOSTNAME, ALMOTUNUI_IP, DISPLAY3_IP
+from App_Utilities.utils import MAIN_CPU, SECONDARY_CPU, MAIN_CPU_IP, SECONDARY_CPU_IP
 from Mirror_Pods_Widgets.SoundsPods import SoundsPods
 environ['SDL_VIDEODRIVER'] = 'windows'
 from kivy.clock import Clock
@@ -19,13 +19,13 @@ Config.write()
 import socket
 
 # check if the current machine is a client or the main cpu and define the socket appropriately
-if socket.gethostname() == DISPLAY3_HOSTNAME:
+if socket.gethostname() == SECONDARY_CPU:
     data_to_max_port = data_to_max_port_client_display3
-    host = ALMOTUNUI_IP
-    sync_data_ip = DISPLAY3_IP
+    host = MAIN_CPU_IP
+    sync_data_ip = SECONDARY_CPU_IP
 else:
     data_to_max_port = data_to_max_port_client_almotunui
-    sync_data_ip = ALMOTUNUI_IP
+    sync_data_ip = MAIN_CPU_IP
     host = "127.0.0.1"
 
 
@@ -62,7 +62,7 @@ class SoundsApp(MpApp):
         self.mp_widg = SoundsPods(n_channels=n_channels, mode=self.mode)
         self.mp_widg.reset()
         self.mp_widg.activate()
-        self.main_computer = socket.gethostname() == ALMOTUNUI_HOSTNAME
+        self.main_computer = socket.gethostname() == MAIN_CPU
         if self.main_computer:
             self.define_listener_to_other_cpu()
             self.broadcasts_counter = 0

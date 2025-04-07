@@ -5,7 +5,7 @@ import ctypes
 from pythonosc.udp_client import SimpleUDPClient
 from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
 from Tapper.MPautism.ChooseProtocolWidget import ProtocolWidget, ChoosePatchWidget
-from Tapper.App_Utilities.utils import ALMOTUNUI_HOSTNAME, DISPLAY3_HOSTNAME, ALMOTUNUI_IP, DISPLAY3_IP
+from Tapper.App_Utilities.utils import MAIN_CPU, SECONDARY_CPU, MAIN_CPU_IP, SECONDARY_CPU_IP
 from Tapper.Mirror_Pods_Widgets.SoundsPods import SoundsPods
 from Tapper.MPautism.ChooseProtocolWidget import patches
 from Tapper.MPautism.sync_utilities import sync_measures
@@ -43,7 +43,7 @@ host = "127.0.0.1"
 main_patch_client = SimpleUDPClient(host, main_patch_port)
 on_off_client = SimpleUDPClient(host, ON_OFF_port)
 max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)
-sync_data_ip = ALMOTUNUI_IP
+sync_data_ip = MAIN_CPU_IP
 
 # messages to MAX variables
 subjName = "subjectName"   # for naming the file

@@ -20,16 +20,16 @@ SAVE_TO_DATA_AYELET = False
 OPPOS_SERVER_CLIENT = False
 
 LSL_TCP_PORT = "22345"
-ALMOTUNUI_HOSTNAME = "ALMOTUNUI"
-DISPLAY3_HOSTNAME = "Display3"
+MAIN_CPU = "ALMOTUNUI"
+SECONDARY_CPU = "Display3"
 if CLIENT_DEV_MODE:
-    ALMOTUNUI_HOSTNAME = socket.gethostname()
-    DISPLAY3_HOSTNAME = socket.gethostname()
-ALMOTUNUI_IP = "132.64.189.43"
-DISPLAY3_IP = "132.64.189.124"
+    MAIN_CPU = socket.gethostname()
+    SECONDARY_CPU = socket.gethostname()
+MAIN_CPU_IP = "132.64.189.43"
+SECONDARY_CPU_IP = "132.64.189.124"
 # ------------------------------------------- Socket utilities --------------------------------------------------------
 # TCP details
-TCP_SERVER_HOST = ALMOTUNUI_IP
+TCP_SERVER_HOST = MAIN_CPU_IP
 TCP_CLIENT_HOST = "0.0.0.0"
 DEV_MODE_HOST = 'localhost'
 TCP_PORT = 8888
@@ -74,7 +74,7 @@ DYADIC_FILE = "d%s_s%s_%s_s%s_%s"
 
 
 if OPPOS_SERVER_CLIENT:
-    TCP_SERVER_HOST = DISPLAY3_IP
+    TCP_SERVER_HOST = SECONDARY_CPU_IP
 
 # ------------------------------------------- Channels Constants -----------------------------------------------------
 Y_AXIS_RATIO = 9/16
@@ -182,6 +182,6 @@ MENU_instruction = "To cancel a session, press 'delete'\n\n\n" \
 EXIT_instruction = "Experiment ended! " \
                    "\nPress ESCAPE to exit the program."
 
-DYADIC_INST_DICTIONARY = {dyadic_subject1_leader_state: {ALMOTUNUI_HOSTNAME: "Leader", DISPLAY3_HOSTNAME: "Follower"},
-                          dyadic_subject2_leader_state: {ALMOTUNUI_HOSTNAME: "Follower", DISPLAY3_HOSTNAME: "Leader"},
-                          dyadic_no_leader_state: {ALMOTUNUI_HOSTNAME: "Joint Improvisation", DISPLAY3_HOSTNAME: "Joint Improvisation"}}
+DYADIC_INST_DICTIONARY = {dyadic_subject1_leader_state: {MAIN_CPU: "Leader", SECONDARY_CPU: "Follower"},
+                          dyadic_subject2_leader_state: {MAIN_CPU: "Follower", SECONDARY_CPU: "Leader"},
+                          dyadic_no_leader_state: {MAIN_CPU: "Joint Improvisation", SECONDARY_CPU: "Joint Improvisation"}}

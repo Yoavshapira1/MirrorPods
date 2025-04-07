@@ -1,6 +1,6 @@
 from socket import gethostname
 from pylsl import StreamInfo, StreamOutlet, local_clock
-from Tapper.App_Utilities.utils import ALMOTUNUI_HOSTNAME, SCREEN_1_NAME, SCREEN_2_NAME, LSL_SRATE, generate_head_columns, \
+from Tapper.App_Utilities.utils import MAIN_CPU, SCREEN_1_NAME, SCREEN_2_NAME, LSL_SRATE, generate_head_columns, \
     HANDS_ALLOWED
 
 
@@ -12,7 +12,7 @@ class LSLOutlet:
     chose to be 500 Hz as default. This data is to be down-sampled in the post process pipeline, to 125 Hz.
     """
     def __init__(self):
-        if gethostname() == ALMOTUNUI_HOSTNAME:
+        if gethostname() == MAIN_CPU:
             self.name = SCREEN_1_NAME
         else:
             self.name = SCREEN_2_NAME

@@ -232,7 +232,8 @@ class ProtocolWidget(BoxLayout):
 
     def edit_protocol(self):
         # TODO: complete this function
-        pass
+        popup = Popup(title="under constructions . . .", size_hint=(0.7, 0.5), auto_dismiss=False)
+        popup.open()
 
     def add_block(self, timer_popup, block_name, timer_input):
         if not timer_input.text:

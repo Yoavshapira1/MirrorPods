@@ -7,7 +7,7 @@ from kivy.clock import Clock
 from MirrorPodsAppAbs import MirrorPodsAppAbs as MpApp
 from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
 from Tapper.Mirror_Pods_Widgets.MirrorPodsWidgetDyadic import MirrorPodsWidgetDyadic as MP
-from Tapper.App_Utilities.utils import DISPLAY3_IP, TIME_SERIES_DT, FULL_SCREEN_MODE
+from Tapper.App_Utilities.utils import SECONDARY_CPU_IP, TIME_SERIES_DT, FULL_SCREEN_MODE
 from kivy.config import Config
 from struct import pack
 Config.set('postproc', 'maxfps', '0')
@@ -36,7 +36,7 @@ class Touch_Debugger(MpApp):
         raw_data = self.mp_widg.get_data(include_touch_id=True)
         animation_data = pack("!ffffffff", *raw_data)
         sounds_data = self.mp_widg.get_data(positional=False)
-        self.animation_sock.sendto(animation_data, (DISPLAY3_IP, 2345))
+        self.animation_sock.sendto(animation_data, (SECONDARY_CPU_IP, 2345))
         self.max_sock.broadcast(sounds_data)
         if self.print_data:
             print(raw_data)
