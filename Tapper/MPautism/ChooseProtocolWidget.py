@@ -231,12 +231,57 @@ class ProtocolWidget(BoxLayout):
     def load_for_edit(self, protocol_name):
         self.current_blocks = self.protocols[protocol_name].copy()  # Load existing blocks
         self.editing_protocol_name = protocol_name  # Save which protocol is being edited
-        self.edit_protocol()
+        self.edit_protocol(self.editing_protocol_name)
 
-    def edit_protocol(self):
-        # TODO: complete this function
-        popup = Popup(title="under constructions . . .", size_hint=(0.7, 0.5), auto_dismiss=False)
-        popup.open()
+    def edit_protocol(self, protocol_name):
+        self.clear_widgets()
+        self.current_blocks = self.protocols[protocol_name].copy()
+        self.editing_protocol_name = protocol_name
+
+        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        layout.add_widget(Label(text=f"Editing Protocol: {protocol_name}", font_size=20, size_hint_y=None, height=40))
+
+        self.timer_inputs = []
+
+        for i, block in enumerate(self.current_blocks):
+            block_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=40, spacing=10,
+                                     size_hint_x=None, width=400)
+            block_layout.pos_hint = {"center_x": 0.5}
+
+            block_label = Label(
+                text=block['name'],
+                size_hint_x=None,
+                width=200,
+                halign='left',
+                valign='middle'
+            )
+            block_label.bind(size=block_label.setter('text_size'))  # ensures proper text alignment
+
+            timer_input = TextInput(
+                text="" if block['timer'] == 987654321 else str(block['timer']),
+                hint_text="unlimited",
+                input_filter="int",
+                multiline=False,
+                size_hint_x=None,
+                width=100
+            )
+
+            self.timer_inputs.append((i, timer_input))
+
+            block_layout.add_widget(block_label)
+            block_layout.add_widget(timer_input)
+            layout.add_widget(block_layout)
+
+        save_button = Button(
+            text="Save Changes",
+            size_hint=(None, None),
+            size=(180, 50),
+            pos_hint={"center_x": 0.5},
+            on_press=self.save_edited_protocol
+        )
+        layout.add_widget(save_button)
+
+        self.add_widget(layout)
 
     def add_block(self, timer_popup, block_name, timer_input):
         if not timer_input.text:
@@ -255,7 +300,7 @@ class ProtocolWidget(BoxLayout):
             label = Label(text=f"{block['name']} - {time_label}", size_hint_y=None, height=30)
             self.blocks_list_content.add_widget(label)
 
-    def save_protocol(self):
+    def save_protocol(self, *kwargs):
         if not self.current_blocks:
             self.show_popup("Error", "No blocks to save!")
             return
@@ -275,17 +320,6 @@ class ProtocolWidget(BoxLayout):
             save_popup.dismiss()
             self.start_experiment(protocol_name)
 
-        # If editing an existing protocol
-        if hasattr(self, 'editing_protocol_name'):
-            protocol_name = self.editing_protocol_name
-            del self.editing_protocol_name
-            self.protocols[protocol_name] = self.current_blocks
-            save_protocols(self.protocols)
-            app = App.get_running_app()
-            app.current_protocol = self.current_blocks
-            self.start_experiment(protocol_name)
-            return
-
         # New protocol save
         save_layout = BoxLayout(orientation="vertical", spacing=10, padding=10)
         save_layout.add_widget(Label(text="Enter Protocol Name:"))
@@ -295,6 +329,23 @@ class ProtocolWidget(BoxLayout):
         save_layout.add_widget(save_button)
         save_popup = Popup(title="Save Protocol", content=save_layout, size_hint=(0.7, 0.5), auto_dismiss=False)
         save_popup.open()
+
+
+    def save_edited_protocol(self, instance):
+        for index, timer_input in self.timer_inputs:
+            text = timer_input.text.strip()
+            timer_value = 987654321 if not text else int(text)
+            self.current_blocks[index]['timer'] = timer_value
+
+        protocol_name = self.editing_protocol_name
+        self.protocols[protocol_name] = self.current_blocks
+        save_protocols(self.protocols)
+
+        self.show_popup("Saved", f"Protocol '{protocol_name}' updated successfully!")
+
+        app = App.get_running_app()
+        app.current_protocol = self.current_blocks
+        self.start_experiment(protocol_name)
 
     def show_popup(self, title, message):
         popup_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
