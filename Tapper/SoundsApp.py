@@ -107,8 +107,9 @@ class SoundsApp(MpApp):
                         pass
 
             else:
+                print("not main cpu")
                 try:
-                    data, _ = self.sync_data_listen.recvfrom(1024)
+                    data, _ = self.radius_size_getter.recvfrom(1024)
                     print(data)
                 except:
                     pass
