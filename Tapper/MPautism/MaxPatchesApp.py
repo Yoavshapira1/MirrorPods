@@ -207,8 +207,7 @@ class SoundsPodScreen(Screen):
         timer = app.current_timer
 
         # send radius size to secondary cpu
-        send_udp_message(udp_to_client, "radius size", patches[app.current_patch]["radius_size"])
-        print(SECONDARY_CPU_IP, 8765, "radius size", patches[app.current_patch]["radius_size"])
+        send_udp_message(udp_to_client, patches[app.current_patch]["radius_size"])
 
         # Schedule end of timer
         self.timer = Clock.schedule_once(self.timer_ends, timer + time_to_beep)

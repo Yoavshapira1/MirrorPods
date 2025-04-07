@@ -107,10 +107,10 @@ class SoundsApp(MpApp):
                         pass
 
             else:
-                print("not main cpu")
                 try:
                     data, _ = self.radius_size_getter.recvfrom(1024)
-                    print(data)
+                    raidus_size = pickle.loads(data)
+                    print(raidus_size)
                 except:
                     pass
 
