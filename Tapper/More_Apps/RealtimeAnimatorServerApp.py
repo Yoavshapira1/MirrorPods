@@ -4,7 +4,7 @@ from os import environ
 environ['SDL_VIDEODRIVER'] = 'windows'
 from kivy.app import App
 from kivy.clock import Clock
-from MirrorPodsAppAbs import MirrorPodsAppAbs as MpApp
+from Tapper import MirrorPodsAppAbs as MpApp
 from Tapper.App_Utilities.BroadCasters import MaxMspBroadcaster
 from Tapper.Mirror_Pods_Widgets.MirrorPodsWidgetDyadic import MirrorPodsWidgetDyadic as MP
 from Tapper.App_Utilities.utils import SECONDARY_CPU_IP, TIME_SERIES_DT, FULL_SCREEN_MODE

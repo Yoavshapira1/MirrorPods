@@ -55,11 +55,12 @@ LSL_SRATE = 500
 
 # ------------------------------------------- Data Files formats ------------------------------------------------------
 # ROOT to save files
-ROOT = os.path.join(os.path.expanduser("~"), "Desktop")
+script_path = os.path.dirname(os.path.abspath(__file__))
+project_path = os.path.split((os.path.split(script_path)[0]))[0]
+ROOT = os.path.split(project_path)[0]
+
 if SAVE_TO_DATA_AYELET:
     ROOT = r"R:\Experiments\resoFreq_vis_BEH\MP_mot_BEH"
-if CLIENT_DEV_MODE:     # change here manually as needed
-    ROOT = os.path.join(os.path.expanduser("~"), "OneDrive", "Desktop")
 
 # directories
 MAIN_DATA_DIR = ROOT + r"\Data"

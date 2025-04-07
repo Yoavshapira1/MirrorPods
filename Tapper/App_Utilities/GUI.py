@@ -243,32 +243,3 @@ class SkipTo(BoxLayout):
                 return dyad, s1_num, s1_name, s2_num, s2_name
         return None
 
-
-class PopupForSoundsApp(Popup):
-    def __init__(self, function, **kwargs):
-        super().__init__(**kwargs)
-        self.button_pressed = function
-        self.title = "Select Option"
-        self.size_hint = (0.7, 0.4)
-
-        layout = BoxLayout(orientation='vertical', spacing=10)
-
-        # Message Label
-        message = Label(text="If the Max patch is on THIS computer, choose Local.", size_hint_y=0.7)
-        layout.add_widget(message)
-
-        # Buttons Layout
-        button_layout = BoxLayout(size_hint_y=0.3, spacing=10)
-
-        local_btn = Button(text="Local")
-        not_local_btn = Button(text="Not Local")
-
-        # Bind the same function to both buttons
-        local_btn.bind(on_press=lambda instance: [self.button_pressed("Local"), self.dismiss()])
-        not_local_btn.bind(on_press=lambda instance: [self.button_pressed("Not Local"), self.dismiss()])
-
-        button_layout.add_widget(local_btn)
-        button_layout.add_widget(not_local_btn)
-
-        layout.add_widget(button_layout)
-        self.content = layout

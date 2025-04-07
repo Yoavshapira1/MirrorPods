@@ -10,12 +10,15 @@ from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
 import os
 
-# Get the directory where the script is located
+# this script dir
 script_dir = os.path.dirname(os.path.abspath(__file__))
 protocols_conf = os.path.join(script_dir, "protocols_conf.json")
 
-# Patch Dictionary
-MAX_PATCHES_DIR = r'C:\Users\ayeletlab\Desktop\MirrorPods\Max'
+# main project dir
+main_project_dir = os.path.split(os.path.dirname(script_dir))[0]
+
+# Max patches dir
+max_patch_dir = os.path.join(main_project_dir, "Max")
 
 def find_matching_subdirs(max_dir):
     patches = []
@@ -28,7 +31,7 @@ def find_matching_subdirs(max_dir):
     return patches
 
 patches = {}
-possible_blocks = find_matching_subdirs(MAX_PATCHES_DIR)
+possible_blocks = find_matching_subdirs(max_patch_dir)
 for patch in possible_blocks:
     patches[patch] = {"count": 0, "name": patch, "instructions": patch, "radius_size": 0.16}
     if patch == "Scale Player":

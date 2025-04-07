@@ -4,7 +4,6 @@ from os import environ
 from pythonosc.udp_client import SimpleUDPClient
 from Tapper.MPautism.sync_utilities import sync_measures
 from MPautism.udp_utilitites import *
-from App_Utilities.GUI import PopupForSoundsApp
 from App_Utilities.utils import MAIN_CPU, SECONDARY_CPU, MAIN_CPU_IP, SECONDARY_CPU_IP
 from Mirror_Pods_Widgets.SoundsPods import SoundsPods
 environ['SDL_VIDEODRIVER'] = 'windows'
