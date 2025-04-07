@@ -15,16 +15,24 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 protocols_conf = os.path.join(script_dir, "protocols_conf.json")
 
 # Patch Dictionary
-# change here to the actual name wanted to be saved, and the actual port is being used
-patches = {
-    "Tapping": {"count": 0, "name": "Tapping", "instructions": "Tapping"},
-    "Silent Pre": {"count": 0, "name": "Silent Pre", "instructions": "Silent Pre"},
-    "Play a Song": {"count": 0, "name": "Play a Song", "instructions": "Play a Song"},
-    "Animal": {"count": 0, "name": "Animal", "instructions": "Animal"},
-    "Silent Post": {"count": 0, "name": "Silent Post", "instructions": "Silent Post"},
-    "Scale Player": {"count": 0, "name": "Scale Player", "instructions": "Scale Player"}
-}
-possible_blocks = list(patches.keys())
+MAX_PATCHES_DIR = r'C:\Users\ayeletlab\Desktop\MirrorPods\Max'
+
+def find_matching_subdirs(max_dir):
+    patches = []
+    for name in os.listdir(max_dir):
+        subdir_path = os.path.join(max_dir, name)
+        if os.path.isdir(subdir_path):
+            expected_file = os.path.join(subdir_path, name + '.maxpat')
+            if os.path.isfile(expected_file):
+                patches.append(name)
+    return patches
+
+patches = {}
+possible_blocks = find_matching_subdirs(MAX_PATCHES_DIR)
+for patch in possible_blocks:
+    patches[patch] = {"count": 0, "name": patch, "instructions": patch, "radius_size": 0.16}
+    if patch == "Scale Player":
+        patches[patch]["radius_size"] = 0.
 
 # Load protocol configuration file or create an empty one
 def load_protocols():
@@ -56,10 +64,12 @@ class ProtocolWidget(BoxLayout):
 
         load_button = Button(text="Load Protocol", on_press=lambda x: [popup.dismiss(), self.load_protocol()])
         new_button = Button(text="New Protocol", on_press=lambda x: [popup.dismiss(), self.new_protocol()])
+        edit_button = Button(text="Edit Protocol", on_press=lambda x: [popup.dismiss(), self.choose_protocol_to_edit()])
 
         popup_layout.add_widget(label)
         popup_layout.add_widget(load_button)
         popup_layout.add_widget(new_button)
+        popup_layout.add_widget(edit_button)
         popup.content = popup_layout
         popup.open()
 
@@ -184,6 +194,46 @@ class ProtocolWidget(BoxLayout):
         popup.content = popup_layout
         popup.open()
 
+    def choose_protocol_to_edit(self):
+        self.clear_widgets()
+        popup_layout = StackLayout(orientation='tb-lr', padding=10, spacing=10)
+        popup = Popup(title="Edit a Protocol", size_hint=(0.7, 0.5), auto_dismiss=False)
+
+        title = Label(
+            text="Choose a Protocol to Edit",
+            font_size=20,
+            size_hint_y=None,
+            height=50,
+            color=(1, 1, 1, 1)
+        )
+        popup_layout.add_widget(title)
+
+        protocols_layout = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
+        protocols_layout.bind(minimum_height=protocols_layout.setter('height'))
+
+        for name in self.protocols.keys():
+            button = Button(
+                text=name,
+                size_hint_y=None,
+                height=40,
+                color=(1, 1, 1, 1)
+            )
+            button.bind(on_press=lambda x, protocol_name=name: [popup.dismiss(), self.load_for_edit(protocol_name)])
+            protocols_layout.add_widget(button)
+
+        popup_layout.add_widget(protocols_layout)
+        popup.content = popup_layout
+        popup.open()
+
+    def load_for_edit(self, protocol_name):
+        self.current_blocks = self.protocols[protocol_name].copy()  # Load existing blocks
+        self.editing_protocol_name = protocol_name  # Save which protocol is being edited
+        self.edit_protocol()
+
+    def edit_protocol(self):
+        # TODO: complete this function
+        pass
+
     def add_block(self, timer_popup, block_name, timer_input):
         if not timer_input.text:
             timer = 987654321
@@ -197,7 +247,8 @@ class ProtocolWidget(BoxLayout):
     def update_blocks_list(self):
         self.blocks_list_content.clear_widgets()
         for block in self.current_blocks:
-            label = Label(text=f"{block['name']} - {block['timer']} sec", size_hint_y=None, height=30)
+            time_label = "unlimited" if block['timer'] == 987654321 else f"{block['timer']} sec"
+            label = Label(text=f"{block['name']} - {time_label}", size_hint_y=None, height=30)
             self.blocks_list_content.add_widget(label)
 
     def save_protocol(self):
@@ -205,21 +256,33 @@ class ProtocolWidget(BoxLayout):
             self.show_popup("Error", "No blocks to save!")
             return
 
-        def save_protocol_name(instance):
+        def save_protocol_name(instance=None):
             protocol_name = protocol_input.text.strip()
             if not protocol_name:
                 self.show_popup("Error", "Protocol Name is required!")
                 return
+
             self.protocols[protocol_name] = self.current_blocks
             save_protocols(self.protocols)
 
             app = App.get_running_app()
-            app.current_protocol = self.current_blocks  # Store the current protocol blocks
+            app.current_protocol = self.current_blocks
 
             save_popup.dismiss()
             self.start_experiment(protocol_name)
 
-        # Popup for Protocol Name
+        # If editing an existing protocol
+        if hasattr(self, 'editing_protocol_name'):
+            protocol_name = self.editing_protocol_name
+            del self.editing_protocol_name
+            self.protocols[protocol_name] = self.current_blocks
+            save_protocols(self.protocols)
+            app = App.get_running_app()
+            app.current_protocol = self.current_blocks
+            self.start_experiment(protocol_name)
+            return
+
+        # New protocol save
         save_layout = BoxLayout(orientation="vertical", spacing=10, padding=10)
         save_layout.add_widget(Label(text="Enter Protocol Name:"))
         protocol_input = TextInput(hint_text="Protocol Name", multiline=False, on_text_validate=save_protocol_name)

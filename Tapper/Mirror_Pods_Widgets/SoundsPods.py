@@ -14,10 +14,12 @@ class SoundsPods(MirrorPodsWidget):
         so the implementation is very simple, i.e. no distances calculation is made here ***
     """
 
-    GROUPY_THRESHOLD = 0.27
-
-    def __init__(self, n_channels, **kwargs):
+    def __init__(self, n_channels, radius_size=0, **kwargs):
+        self.radius_size = radius_size
         super().__init__(n_channels=n_channels, positional=False, **kwargs)
+
+    def set_radius_size(self, size):
+        self.radius_size = size
 
     def set_neighbors_channels(self):
         """
@@ -44,7 +46,7 @@ class SoundsPods(MirrorPodsWidget):
                     ch.activate(touch, self.touch_indexing)
                     return
                 # If there is an active touch, and the current touch is very close to it - Add to group
-                if ch.distance_from_pos(touch.spos) < self.GROUPY_THRESHOLD:
+                if ch.distance_from_pos(touch.spos) < self.radius_size:
                     ch.add_to_group(touch)
                     return
 

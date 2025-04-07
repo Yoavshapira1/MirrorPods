@@ -2,11 +2,11 @@
     "MP ASD": [
         {
             "name": "Silent Pre",
-            "timer": "75"
+            "timer": "60"
         },
         {
             "name": "Silent Pre",
-            "timer": "75"
+            "timer": "60"
         },
         {
             "name": "Play a Song",
@@ -18,11 +18,11 @@
         },
         {
             "name": "Silent Post",
-            "timer": "75"
+            "timer": "60"
         },
         {
             "name": "Silent Post",
-            "timer": "75"
+            "timer": "60"
         }
     ]
 }

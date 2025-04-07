@@ -28,7 +28,7 @@ Config.set('graphics', 'maxfps', '0')
 Config.set('postproc', 'retain_time', '20')
 Config.write()
 
-FULL_WINDOW = False
+FULL_WINDOW = True
 TIME_SERIES_DT = 0.001   # sampling rate
 MODE = "wm_touch"        # change between "wm_touch" and "mouse"
 # how synchronization is measured, options are:
@@ -54,6 +54,7 @@ REC_OFF = "RECOFF"     # indicate to not record the session
 ON = "ON"               # sounds on
 OFF = "OFF"             # sounds (and recordings if any) off
 SYNC = "sync"
+VIDEO = "video"
 
 time_to_beep = 2
 delay_to_start = 2   # let Max open the patch fully
@@ -202,6 +203,7 @@ class SoundsPodScreen(Screen):
         self.define_listener_to_other_cpu()
 
         app = App.get_running_app()
+        self.mp_widg.set_radius_size(patches[app.current_patch]["radius_size"])
         timer = app.current_timer
 
         # Schedule end of timer
@@ -256,6 +258,9 @@ class SoundsPodScreen(Screen):
             end_screen = self.manager.get_screen("end")
             if not end_screen.is_demonstration:
                 self.handle_delete_press()
+
+        if keycode == 118:
+            send_udp_message(max_sync_measure_client, VIDEO, VIDEO)
 
 
     def handle_space_press(self):
