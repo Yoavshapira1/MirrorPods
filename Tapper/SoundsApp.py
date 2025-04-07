@@ -66,14 +66,6 @@ class SoundsApp(MpApp):
         if self.main_computer:
             self.define_listener_to_other_cpu()
             self.broadcasts_counter = 0
-        else:
-            self.popup = PopupForSoundsApp(function=self.local_path_or_not)
-            self.popup.open()
-
-    def local_path_or_not(self, choice):
-        if choice == "Local":
-            self.max_data_udp_client = MaxMspBroadcaster(channels=self.n_channels, positional=self.positional,
-                                                         host="127.0.0.1", port=2223)
 
     def define_listener_to_other_cpu(self):
         # defining the udp port that listen to data from other computer
