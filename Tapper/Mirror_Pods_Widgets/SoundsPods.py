@@ -56,9 +56,7 @@ class SoundsPods(MirrorPodsWidget):
                 if ch.get_main_touch() == touch:
                     ch.move()
                     return
-                self.touch_indexing += 1
-                self.channels[0].activate(touch, self.touch_indexing)
-                return
+
 
     def on_touch_up(self, touch):
         if touch.device != self.touch_mode:
