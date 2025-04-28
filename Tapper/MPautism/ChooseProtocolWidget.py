@@ -37,16 +37,16 @@ def find_matching_subdirs(max_dir):
 #     name: String
 #     instructions: String
 #     radius_size: float
-#     time_to_beep: float
+#     delay_to_start: float
 # }
 patches = {}
 possible_blocks = find_matching_subdirs(max_patch_dir)
 for patch in possible_blocks:
-    patches[patch] = {"count": 0, "name": patch, "instructions": patch, "radius_size": 0.16, "time_to_beep": 2.}
+    patches[patch] = {"count": 0, "name": patch, "instructions": patch, "radius_size": 0.16, "delay_to_start": 2}
     if patch == "Scale Player":
         patches[patch]["radius_size"] = 0.
     if patch == "Granular":
-        patches[patch]["time_to_beep"] = 3.5
+        patches[patch]["delay_to_start"] = 4
 
 # Load protocol configuration file or create an empty one
 def load_protocols():

@@ -57,6 +57,7 @@ OFF = "OFF"             # sounds (and recordings if any) off
 SYNC = "sync"
 VIDEO = "video"
 
+time_to_beep = 2     # for the 2 seconds that Max waits before recording
 delay_to_start = 2   # let Max open the patch fully
 
 # helper function to send UDP messages, given udp client and a message
@@ -159,7 +160,7 @@ class InstructionScreen(Screen):
 
         # send message to start the patch
         send_udp_message(main_patch_client, self.patch_info["name"], OPEN)
-        time.sleep(delay_to_start)
+        time.sleep(patches[app.current_patch]["radius_size"]['delay_to_start'])
         send_udp_message(on_off_client, self.patch_info["name"], f"{COUNTER} {self.patch_info['count']}")
         if self.is_recording:
             send_udp_message(on_off_client, self.patch_info["name"], REC_ON)
@@ -210,7 +211,7 @@ class SoundsPodScreen(Screen):
         send_udp_message(udp_to_client, "radius_size",  patches[app.current_patch]["radius_size"])
 
         # Schedule end of timer
-        self.timer = Clock.schedule_once(self.timer_ends, timer + patches[app.current_patch]['time_to_beep'])
+        self.timer = Clock.schedule_once(self.timer_ends, timer + time_to_beep)
 
         # start sampling the touch events
         self.mp_widg.activate()
