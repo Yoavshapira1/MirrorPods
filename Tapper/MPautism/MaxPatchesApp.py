@@ -50,8 +50,8 @@ sync_data_ip = MAIN_CPU_IP
 subjName = "subjectName"   # for naming the file
 OPEN = "OPEN"           # open a certain patch
 COUNTER = "NUM"         # for naming the file
-REC_ON = "RECON"       # indicate to record the session
-REC_OFF = "RECOFF"     # indicate to not record the session
+REC_ON = "RECON"        # indicate to record the session
+REC_OFF = "RECOFF"      # indicate to not record the session
 ON = "ON"               # sounds on
 OFF = "OFF"             # sounds (and recordings if any) off
 SYNC = "sync"
@@ -262,7 +262,7 @@ class SoundsPodScreen(Screen):
             if not end_screen.is_demonstration:
                 self.handle_delete_press()
 
-        if keycode == 118:
+        if keycode == 118:  # 118 is the "v" key
             send_udp_message(max_sync_measure_client, VIDEO, VIDEO)
 
 
