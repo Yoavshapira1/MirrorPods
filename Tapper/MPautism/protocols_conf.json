@@ -24,5 +24,11 @@
             "name": "Silent Post",
             "timer": 60
         }
+    ],
+    "- for developing only -": [
+        {
+            "name": "Tapping",
+            "timer": 987654321
+        }
     ]
 }

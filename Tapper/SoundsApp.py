@@ -1,4 +1,5 @@
 import pickle
+import struct
 import sys
 from os import environ
 from pythonosc.udp_client import SimpleUDPClient
@@ -29,7 +30,7 @@ else:
 
 
 # Full window switch
-FULL_WINDOW = True
+FULL_WINDOW = False
 # Time-Scale of UDP messages
 TIME_SERIES_DT = 0.001
 
@@ -62,6 +63,8 @@ class SoundsApp(MpApp):
         self.mp_widg.reset()
         self.mp_widg.activate()
         self.main_computer = socket.gethostname() == MAIN_CPU
+        #TODO: delete this line
+        self.main_computer = False
         if self.main_computer:
             self.define_listener_to_other_cpu()
             self.broadcasts_counter = 0
@@ -108,9 +111,11 @@ class SoundsApp(MpApp):
 
             else:
                 try:
+                    # expect to receive message: "radius_size <float>"
                     data, _ = self.radius_size_getter.recvfrom(1024)
-                    raidus_size = pickle.loads(data)
-                    print(raidus_size)
+                    parts = data.split(b'\x00')
+                    radius_size = struct.unpack('>f', parts[3])[0]
+                    self.mp_widg.set_radius_size(radius_size)
                 except:
                     pass
 

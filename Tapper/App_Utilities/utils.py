@@ -26,7 +26,9 @@ if CLIENT_DEV_MODE:
     MAIN_CPU = socket.gethostname()
     SECONDARY_CPU = socket.gethostname()
 MAIN_CPU_IP = "132.64.189.43"
+# TODO: delete this line
 SECONDARY_CPU_IP = "132.64.189.124"
+SECONDARY_CPU_IP = '127.0.0.1'
 # ------------------------------------------- Socket utilities --------------------------------------------------------
 # TCP details
 TCP_SERVER_HOST = MAIN_CPU_IP

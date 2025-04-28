@@ -28,7 +28,7 @@ Config.set('graphics', 'maxfps', '0')
 Config.set('postproc', 'retain_time', '20')
 Config.write()
 
-FULL_WINDOW = True
+FULL_WINDOW = False
 TIME_SERIES_DT = 0.001   # sampling rate
 MODE = "wm_touch"        # change between "wm_touch" and "mouse"
 # how synchronization is measured, options are:
@@ -40,10 +40,12 @@ sync_msg_ratio = 10 if SYNC_MEASURE == "velocity" else 1
 
 # UDP info for main computer
 host = "127.0.0.1"
-main_patch_client = SimpleUDPClient(host, main_patch_port)
-on_off_client = SimpleUDPClient(host, ON_OFF_port)
-max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)
-udp_to_client = SimpleUDPClient(SECONDARY_CPU_IP, 8765)
+main_patch_client = SimpleUDPClient(host, main_patch_port)               # tell Max what patch to open
+on_off_client = SimpleUDPClient(host, ON_OFF_port)                       # tell Max to shut down/turn on a patch
+max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)   # tell Max the synchronization value
+udp_to_client = SimpleUDPClient(SECONDARY_CPU_IP, 8765)             # communicate with other cpu
+# TODO: delete this line
+udp_to_client = SimpleUDPClient(host, 8765)             # communicate with other cpu
 sync_data_ip = MAIN_CPU_IP
 
 # messages to MAX variables
@@ -57,12 +59,12 @@ OFF = "OFF"             # sounds (and recordings if any) off
 SYNC = "sync"
 VIDEO = "video"
 
-time_to_beep = 2
 delay_to_start = 2   # let Max open the patch fully
 
 # helper function to send UDP messages, given udp client and a message
 def send_udp_message(udp_client, address, message):
-        udp_client.send_message(address, message)
+    print(udp_client._address, udp_client._port, address, message)
+    udp_client.send_message(address, message)
 
 
 # Screens
@@ -207,10 +209,10 @@ class SoundsPodScreen(Screen):
         timer = app.current_timer
 
         # send radius size to secondary cpu
-        send_udp_message(udp_to_client, patches[app.current_patch]["radius_size"])
+        send_udp_message(udp_to_client, "radius_size",  patches[app.current_patch]["radius_size"])
 
         # Schedule end of timer
-        self.timer = Clock.schedule_once(self.timer_ends, timer + time_to_beep)
+        self.timer = Clock.schedule_once(self.timer_ends, timer + patches[app.current_patch]['time_to_beep'])
 
         # start sampling the touch events
         self.mp_widg.activate()
