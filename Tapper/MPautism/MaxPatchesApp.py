@@ -43,7 +43,7 @@ host = "127.0.0.1"
 main_patch_client = SimpleUDPClient(host, main_patch_port)               # tell Max what patch to open
 on_off_client = SimpleUDPClient(host, ON_OFF_port)                       # tell Max to shut down/turn on a patch
 max_sync_measure_client = SimpleUDPClient(host, max_sync_measure_port)   # tell Max the synchronization value
-udp_to_client = SimpleUDPClient(SECONDARY_CPU_IP, 8765)             # communicate with other cpu
+udp_to_client = SimpleUDPClient(SECONDARY_CPU_IP, 8765)             # communicate with the secondary cpu
 sync_data_ip = MAIN_CPU_IP
 
 # messages to MAX variables
