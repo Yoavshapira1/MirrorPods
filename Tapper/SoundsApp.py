@@ -63,8 +63,6 @@ class SoundsApp(MpApp):
         self.mp_widg.reset()
         self.mp_widg.activate()
         self.main_computer = socket.gethostname() == MAIN_CPU
-        #TODO: delete this line
-        self.main_computer = False
         if self.main_computer:
             self.define_listener_to_other_cpu()
             self.broadcasts_counter = 0
