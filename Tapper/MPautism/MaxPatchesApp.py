@@ -160,7 +160,7 @@ class InstructionScreen(Screen):
 
         # send message to start the patch
         send_udp_message(main_patch_client, self.patch_info["name"], OPEN)
-        time.sleep(patches[app.current_patch]["radius_size"]['delay_to_start'])
+        time.sleep(patches[app.current_patch]['delay_to_start'])
         send_udp_message(on_off_client, self.patch_info["name"], f"{COUNTER} {self.patch_info['count']}")
         if self.is_recording:
             send_udp_message(on_off_client, self.patch_info["name"], REC_ON)
